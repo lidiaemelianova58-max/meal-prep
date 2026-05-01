@@ -1,0 +1,22 @@
+# Dev tools (содержат node_modules и временные скрипты)
+.tools/
+
+# Supabase CLI auto-generated (не для публичного репо)
+supabase/.temp/
+
+# Шрифты Gilroy — лицензионный вопрос, добавим в Этапе 5 отдельно
+Gilroy/
+
+# Node
+node_modules/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

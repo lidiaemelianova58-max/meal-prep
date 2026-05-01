@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FDFAF7">
+<title>Meal Prep Planner 🧊</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito', sans-serif; background: #FDFAF7; color: #2B2118; font-size: 14px; -webkit-font-smoothing: antialiased; }
+.app { max-width: 600px; margin: 0 auto; padding: 0 8px 80px; }
+.header { text-align: center; padding: 16px 0 4px; }
+.header h1 { font-size: 20px; font-weight: 800; margin: 4px 0; letter-spacing: -0.3px; }
+.header p { font-size: 12px; color: #8A7E72; }
+.tabs { display: flex; position: sticky; top: 0; z-index: 20; background: #FDFAF7; border-bottom: 2px solid #E8E0D6; padding-top: 8px; }
+.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #8A7E72; border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Nunito', sans-serif; }
+.tab.active { font-weight: 700; color: #2D6A4F; border-bottom-color: #2D6A4F; }
+.tab-content { display: none; padding-top: 12px; }
+.tab-content.active { display: block; }
+.info-bar { background: #F0F7F2; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.info-bar .main { font-weight: 700; color: #2D6A4F; }
+.muted { font-size: 12px; color: #8A7E72; }
+.h3 { font-size: 13px; font-weight: 700; color: #8A7E72; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
+.card { border: 1.5px solid #E8E0D6; border-radius: 14px; overflow: hidden; margin-bottom: 8px; background: #fff; }
+.card.dimmed { opacity: 0.45; }
+.card-head { padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
+.checkbox { width: 26px; height: 26px; border-radius: 8px; border: 2px solid #D4C9BC; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+.checkbox.checked { background: #2D6A4F; border-color: #2D6A4F; }
+.card-body { flex: 1; cursor: pointer; }
+.card-title { display: flex; align-items: center; gap: 6px; }
+.card-title .emoji { font-size: 20px; }
+.card-title .name { font-weight: 700; font-size: 14px; }
+.card-meta { display: flex; gap: 6px; margin-top: 3px; flex-wrap: wrap; align-items: center; }
+.badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; white-space: nowrap; }
+.arrow { font-size: 18px; color: #C4B9AB; cursor: pointer; padding: 0 4px; transition: transform .2s; }
+.arrow.open { transform: rotate(180deg); }
+.recipe-detail { padding: 0 14px 14px; font-size: 13px; line-height: 1.7; border-top: 1px dashed #E8E0D6; display: none; }
+.recipe-detail.open { display: block; }
+.recipe-detail .label { font-weight: 700; margin-bottom: 2px; }
+.recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted #EEE; }
+.recipe-detail .ing-row span:last-child { font-weight: 600; white-space: nowrap; }
+.btn { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 16px; border: none; border-radius: 20px; background: #2D6A4F; color: #fff; cursor: pointer; }
+.btn-outline { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border: 1.5px solid #D4C9BC; border-radius: 20px; background: transparent; color: #8A7E72; cursor: pointer; }
+.btn-delete { font-size: 11px; padding: 4px 12px; color: #C4430A; border-color: #C4430A; }
+.btn-full { width: 100%; }
+.btn-group { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+.progress { display: flex; gap: 2px; margin-bottom: 14px; }
+.progress-dot { flex: 1; height: 6px; border-radius: 3px; background: #E8E0D6; transition: background .2s; }
+.progress-dot.filled { background: #2D6A4F; }
+.day-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid #E8E0D6; background: #fff; cursor: pointer; margin-bottom: 4px; }
+.day-row.filled { background: #FDFAF7; }
+.day-row.editing { border: 2px solid #2D6A4F; border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.day-label { font-weight: 700; color: #8A7E72; min-width: 22px; font-size: 13px; }
+.day-empty { flex: 1; color: #C4B9AB; font-style: italic; font-size: 13px; }
+.day-content { flex: 1; min-width: 0; }
+.day-clear { background: none; border: none; color: #C4B9AB; cursor: pointer; font-size: 18px; padding: 0 4px; }
+.editor { background: #FDFAF7; border: 1.5px solid #E8E0D6; border-top: none; border-radius: 0 0 12px 12px; padding: 12px; margin-bottom: 4px; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.chip { font-family: 'Nunito'; font-size: 11px; font-weight: 500; padding: 5px 8px; border-radius: 8px; border: 1.5px solid #D4C9BC; background: #fff; cursor: pointer; color: #2B2118; }
+.chip.selected { font-weight: 700; }
+.meat-row { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0EBE4; }
+.meat-row:last-child { border-bottom: none; }
+.meat-total { padding: 8px 14px; background: #F0F7F2; font-size: 13px; font-weight: 700; color: #2D6A4F; text-align: right; }
+.extra-row { padding: 8px 14px; border-bottom: 1px solid #F0EBE4; }
+.extra-row:last-child { border-bottom: none; }
+.extra-head { display: flex; justify-content: space-between; align-items: baseline; }
+.extra-head .amount { font-weight: 700; white-space: nowrap; margin-left: 8px; }
+.spice-box { padding: 14px; font-size: 13px; color: #8A7E72; line-height: 1.8; }
+.summary { background: #F0F7F2; border-radius: 12px; padding: 14px; text-align: center; font-weight: 700; color: #2D6A4F; }
+input, textarea { font-family: 'Nunito', sans-serif; font-size: 13px; padding: 8px 12px; border: 1.5px solid #D4C9BC; border-radius: 10px; width: 100%; outline: none; background: #fff; }
+textarea { resize: vertical; }
+.form-group { margin-bottom: 10px; }
+.form-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.form-row > div { flex: 1; }
+.form-row .small { width: 70px; flex: none; }
+.ing-form-row { display: flex; gap: 6px; margin-bottom: 4px; }
+.ing-form-row input:first-child { flex: 2; }
+.ing-form-row input:last-child { flex: 1; }
+.toggle-group { display: flex; gap: 4px; }
+.toggle-btn { font-family: 'Nunito', sans-serif; flex: 1; padding: 6px 8px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ═══════════════════ CONFIG ═══════════════════
+const CONFIG = {
+  SUPABASE_URL: 'https://fgomfmpzccufqumnfddk.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnb21mbXB6Y2N1ZnF1bW5mZGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDkwNzEsImV4cCI6MjA5MzIyNTA3MX0.UVD-uK260gnqnuMzZkwqYoTpQ6ycy_IbSQts_CgCagY',
+  AUTH_FUNCTION_URL: 'https://fgomfmpzccufqumnfddk.supabase.co/functions/v1/auth-telegram',
+};
+
+// Состояние авторизации (только в памяти, не в localStorage)
+let supabase = null;
+let authJwt = null;
+let authUser = null;
+
+// ═══════════════════ DATA ═══════════════════
+const MEAT_TYPES = {
+  chicken_fillet: { label: "Куриное филе", emoji: "🍗" },
+  chicken_thigh: { label: "Куриные бёдра", emoji: "🍗" },
+  chicken_mince: { label: "Куриный фарш", emoji: "🍗" },
+  pork: { label: "Свинина (шея/лопатка)", emoji: "🥩" },
+  pork_mince: { label: "Свиной фарш", emoji: "🥩" },
+};
+
+const SIDES = [
+  { name: "Рис", emoji: "🍚" }, { name: "Паста", emoji: "🍝" },
+  { name: "Пюре", emoji: "🥔" }, { name: "Овощи", emoji: "🥦" },
+  { name: "Салат", emoji: "🥗" }, { name: "Лаваш", emoji: "🫓" },
+  { name: "Гречка", emoji: "🌾" }, { name: "Булгур", emoji: "🌾" },
+  { name: "Лапша", emoji: "🍜" }, { name: "Хлеб", emoji: "🍞" },
+];
+
+const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс","Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+
+const DEFAULT_RECIPES = [
+  { id:"bbq",name:"Курица BBQ",type:"chicken",category:"marinade",emoji:"🔥",color:"#C4430A",bg:"#FFF0E8",recipe:"Бёдра/филе + соус BBQ (80 мл) + 2 зубч. чеснока + копчёная паприка (1 ч.л). Перемешать, в плоский пакет.",serve:"Сковорода 15 мин. Подавать с рисом и огурцами.",time:20,meat:{type:"chicken_thigh",grams:250},ingredients:[{name:"Соус BBQ",amount:"80 мл"},{name:"Чеснок",amount:"2 зубч."},{name:"Копчёная паприка",amount:"1 ч.л"}]},
+  { id:"curry",name:"Курица Карри",type:"chicken",category:"marinade",emoji:"🍛",color:"#B8860B",bg:"#FFF8E1",recipe:"Филе + йогурт (150 г) + карри (1 ст.л) + 2 зубч. чеснока. В плоский пакет.",serve:"Сковорода 15 мин. Подавать с рисом и йогуртом.",time:20,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Греческий йогурт",amount:"150 г"},{name:"Карри",amount:"1 ст.л"},{name:"Чеснок",amount:"2 зубч."}]},
+  { id:"asian",name:"Курица Азия",type:"chicken",category:"marinade",emoji:"🥢",color:"#2D6A4F",bg:"#E8F5E9",recipe:"Филе + соевый соус (30 мл) + мёд (1 ст.л) + имбирь тёртый (1 ч.л) + 2 зубч. чеснока + кунжут. В пакет.",serve:"Сковорода 12 мин. С рисом/лапшой, посыпать кунжутом.",time:15,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Соевый соус",amount:"30 мл"},{name:"Мёд",amount:"1 ст.л"},{name:"Имбирь",amount:"1 ч.л тёртый"},{name:"Чеснок",amount:"2 зубч."},{name:"Кунжут",amount:"1 ст.л"}]},
+  { id:"kefir",name:"Курица Кефирная",type:"chicken",category:"marinade",emoji:"🥛",color:"#6A5ACD",bg:"#F0EDFF",recipe:"Филе + кефир (200 мл) + кинза (пучок) + 2-3 зубч. чеснока + яблочный уксус (20 мл). В пакет.",serve:"Сковорода 15 мин. С овощами и лавашом.",time:15,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Кефир",amount:"200 мл"},{name:"Кинза",amount:"1 пучок"},{name:"Чеснок",amount:"2-3 зубч."},{name:"Яблочный уксус",amount:"20 мл"}]},
+  { id:"corn_cutlets",name:"Котлеты с кукурузой",type:"chicken",category:"semi",emoji:"🌽",color:"#D4A017",bg:"#FFFDE7",recipe:"Мелко порубить 300 г филе. + ½ банки кукурузы + 75 г сыра тёрт. + 1 яйцо + 1.5 ст.л сметаны + 1 ст.л муки + соль/перец. Сформовать котлеты, на пергамент → морозилка.",serve:"Жарить на среднем огне по 5 мин/сторону. С пюре и салатом.",time:20,meat:{type:"chicken_fillet",grams:300},ingredients:[{name:"Кукуруза консерв.",amount:"½ банки"},{name:"Сыр твёрдый",amount:"75 г"},{name:"Яйцо",amount:"1 шт"},{name:"Сметана",amount:"1.5 ст.л"},{name:"Мука",amount:"1 ст.л"}]},
+  { id:"mushroom_cutlets",name:"Котлеты с грибами",type:"chicken",category:"semi",emoji:"🍄",color:"#795548",bg:"#EFEBE9",recipe:"Порубить 300 г филе. Обжарить 200 г шампиньонов + 1 лук. + 1 яйцо + 1.5 ст.л сметаны + 1 ст.л муки + соль. Сформовать → морозилка.",serve:"Жарить под крышкой 12 мин. С пастой и сметаной.",time:20,meat:{type:"chicken_fillet",grams:300},ingredients:[{name:"Шампиньоны",amount:"200 г"},{name:"Лук",amount:"1 шт"},{name:"Яйцо",amount:"1 шт"},{name:"Сметана",amount:"1.5 ст.л"},{name:"Мука",amount:"1 ст.л"}]},
+  { id:"skewers",name:"Шашлычки с беконом",type:"chicken",category:"semi",emoji:"🍢",color:"#E65100",bg:"#FFF3E0",recipe:"Нарезать 300 г филе кубиками. Бекон (150 г) — полосками. Нанизать чередуя на шпажки. Посолить, поперчить → в пакет → морозилка.",serve:"Сковорода-гриль или духовка 200° — 12-15 мин. С лавашом и соусом.",time:15,meat:{type:"chicken_fillet",grams:300},ingredients:[{name:"Бекон",amount:"150 г"},{name:"Шпажки",amount:"8-10 шт"}]},
+  { id:"meatballs",name:"Фрикадельки куриные",type:"chicken",category:"semi",emoji:"🧆",color:"#4E342E",bg:"#F5EEEB",recipe:"350 г фарша + 1 яйцо + 2 зубч. чеснока + зелень (укроп/петрушка) + соль/перец. Скатать шарики → на доску → морозилка 2 ч → ссыпать в пакет.",serve:"Суп: вода → картошка → через 10 мин фрикадельки (20 мин). Паста: в томатный соус 12 мин.",time:20,meat:{type:"chicken_mince",grams:350},ingredients:[{name:"Яйцо",amount:"1 шт"},{name:"Чеснок",amount:"2 зубч."},{name:"Зелень (укроп/петрушка)",amount:"1 пучок"}]},
+  { id:"pork_ketchup",name:"Свинина под сыром",type:"pork",category:"marinade",emoji:"🧀",color:"#C62828",bg:"#FFEBEE",recipe:"300 г свинины пластами + кетчуп (100 мл) + соль/перец. Мариновать. Соус: сметана + горчица + чеснок. Покрыть мясо соусом + сыр сверху → в пакет → морозилка.",serve:"Из морозилки в духовку 180° — 25-30 мин. С рисом или пюре.",time:30,meat:{type:"pork",grams:300},ingredients:[{name:"Кетчуп",amount:"100 мл"},{name:"Сметана",amount:"2 ст.л"},{name:"Горчица",amount:"1 ст.л"},{name:"Сыр твёрдый",amount:"75 г"},{name:"Чеснок",amount:"2 зубч."}]},
+  { id:"pork_honey",name:"Свинина томат-мёд",type:"pork",category:"marinade",emoji:"🍯",color:"#BF360C",bg:"#FBE9E7",recipe:"300 г свинины крупными кусками + протёртые томаты (150 г) + горчица (1 ст.л) + мёд (1 ст.л) + 2 зубч. чеснока + соль/перец. В пакет → морозилка.",serve:"Сковорода 15-18 мин на среднем огне. С рисом/булгуром и зеленью.",time:20,meat:{type:"pork",grams:300},ingredients:[{name:"Протёртые томаты",amount:"150 г"},{name:"Горчица",amount:"1 ст.л"},{name:"Мёд",amount:"1 ст.л"},{name:"Чеснок",amount:"2 зубч."}]},
+  { id:"pork_breaded",name:"Отбивные в панировке",type:"pork",category:"semi",emoji:"🍖",color:"#8D6E63",bg:"#F5F0ED",recipe:"350 г свинины нарезать пластами 1 см, отбить. Посолить, поперчить. Обмакнуть в яйцо → панировочные сухари → на пергамент → морозилка.",serve:"Жарить в масле по 4-5 мин/сторону. С пюре и салатом.",time:15,meat:{type:"pork",grams:350},ingredients:[{name:"Яйцо",amount:"1 шт"},{name:"Панировочные сухари",amount:"50 г"}]},
+  { id:"pork_rolls",name:"Рулетики с грибами",type:"pork",category:"semi",emoji:"🌀",color:"#5D4037",bg:"#EFEBE9",recipe:"350 г свинины отбить тонко. На каждый кусок — обжаренные шампиньоны (100 г) + лук + тёртый сыр (50 г). Свернуть рулетом → в контейнер → морозилка.",serve:"Духовка 200° ~20 мин. С рисом/картошкой и сметаной.",time:25,meat:{type:"pork",grams:350},ingredients:[{name:"Шампиньоны",amount:"100 г"},{name:"Лук",amount:"1 шт"},{name:"Сыр твёрдый",amount:"50 г"}]},
+  { id:"burger_nests",name:"Гнёзда «Бургер»",type:"pork",category:"semi",emoji:"🍔",color:"#D84315",bg:"#FFF3E0",recipe:"300 г свиного фарша — сформовать гнёзда (углубление в центре). Начинка: ломтик сыра + марин. огурцы + томат + красный лук. Соус: сметана + BBQ/кетчуп → в контейнер → морозилка.",serve:"Духовка 180° ~15 мин. Собрать в булке или лаваше.",time:20,meat:{type:"pork_mince",grams:300},ingredients:[{name:"Сыр твёрдый",amount:"50 г"},{name:"Маринованные огурцы",amount:"3-4 шт"},{name:"Томаты",amount:"1 шт"},{name:"Красный лук",amount:"1 шт"},{name:"Сметана/кетчуп",amount:"по 1 ст.л"}]},
+  { id:"pork_packet",name:"Свинина с овощами",type:"pork",category:"semi",emoji:"🫕",color:"#2E7D32",bg:"#E8F5E9",recipe:"350 г свинины кусками + 3 картошки кубиками + 2 моркови + 1 лук. Соль, перец, паприка. Всё в пакет для запекания → морозилка.",serve:"Пакет в холодную духовку → 180° до готовности (~40 мин). С хлебом и салатом.",time:40,meat:{type:"pork",grams:350},ingredients:[{name:"Картофель",amount:"3 шт"},{name:"Морковь",amount:"2 шт"},{name:"Лук",amount:"1 шт"},{name:"Пакет для запекания",amount:"1 шт"}]},
+];
+
+// ═══════════════════ STATE ═══════════════════
+let state = {
+  tab: 0,
+  recipes: JSON.parse(JSON.stringify(DEFAULT_RECIPES)),
+  activeIds: new Set(DEFAULT_RECIPES.map(r => r.id)),
+  plan: DAYS.map(() => ({ recipeId: null, side: null })),
+  expanded: {},
+  editingDay: null,
+};
+
+function save() {
+  try {
+    const s = { ...state, activeIds: [...state.activeIds] };
+    localStorage.setItem('mealprep', JSON.stringify(s));
+  } catch(e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('mealprep');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    state.recipes = s.recipes || state.recipes;
+    state.activeIds = new Set(s.activeIds || []);
+    state.plan = s.plan || state.plan;
+  } catch(e) {}
+}
+
+// ═══════════════════ RENDER ═══════════════════
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'className') el.className = v;
+    else if (k === 'html') el.innerHTML = v;
+    else el.setAttribute(k, v);
+  });
+  children.flat(9).forEach(c => { if (c != null) el.append(typeof c === 'string' ? document.createTextNode(c) : c); });
+  return el;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  const activeRecipes = state.recipes.filter(r => state.activeIds.has(r.id));
+
+  // Header
+  app.append(h('div', { className: 'header' },
+    h('div', { style: { fontSize: '32px' } }, '🧊'),
+    h('h1', null, 'Meal Prep Planner'),
+    h('p', null, 'Заготовки → Закупки → Ужины')
+  ));
+
+  // Tabs
+  const tabNames = ['📋 Рецепты', '🛒 Закупки', '🗓 План', '➕ Добавить'];
+  const tabs = h('div', { className: 'tabs' });
+  tabNames.forEach((name, i) => {
+    tabs.append(h('button', {
+      className: 'tab' + (state.tab === i ? ' active' : ''),
+      onClick: () => { state.tab = i; render(); }
+    }, name));
+  });
+  app.append(tabs);
+
+  // Tab content
+  if (state.tab === 0) renderRecipes(app, activeRecipes);
+  else if (state.tab === 1) renderShopping(app, activeRecipes);
+  else if (state.tab === 2) renderPlanner(app, activeRecipes);
+  else if (state.tab === 3) renderAddForm(app);
+}
+
+// ═══ RECIPES TAB ═══
+function renderRecipes(app, activeRecipes) {
+  const wrap = h('div', { className: 'tab-content active' });
+
+  wrap.append(h('div', { className: 'info-bar' },
+    h('span', { className: 'main' }, `Включено: ${state.activeIds.size} из ${state.recipes.length}`),
+    h('span', { className: 'muted' }, `= ${state.activeIds.size} ужинов на двоих`)
+  ));
+  wrap.append(h('p', { className: 'muted', style: { marginBottom: '8px' } }, 'Галочка — включить/выключить. Нажми на карточку — рецепт.'));
+
+  ['chicken', 'pork'].forEach(type => {
+    wrap.append(h('div', { className: 'h3' }, type === 'chicken' ? '🍗 Курица' : '🥩 Свинина'));
+    state.recipes.filter(r => r.type === type).forEach(r => {
+      wrap.append(renderRecipeCard(r));
+    });
+  });
+
+  app.append(wrap);
+}
+
+function renderRecipeCard(r) {
+  const active = state.activeIds.has(r.id);
+  const exp = state.expanded[r.id];
+  const card = h('div', { className: 'card' + (active ? '' : ' dimmed') });
+
+  const head = h('div', { className: 'card-head' });
+
+  const cb = h('div', {
+    className: 'checkbox' + (active ? ' checked' : ''),
+    onClick: (e) => { e.stopPropagation(); active ? state.activeIds.delete(r.id) : state.activeIds.add(r.id); save(); render(); }
+  }, active ? '✓' : '');
+
+  const body = h('div', { className: 'card-body', onClick: () => { state.expanded[r.id] = !state.expanded[r.id]; render(); } },
+    h('div', { className: 'card-title' },
+      h('span', { className: 'emoji' }, r.emoji),
+      h('span', { className: 'name' }, r.name)
+    ),
+    h('div', { className: 'card-meta' },
+      h('span', { className: 'badge', style: { background: r.bg, color: r.color } }, r.category === 'marinade' ? 'маринад' : 'полуфабрикат'),
+      h('span', { className: 'badge', style: { background: '#F5F5F5', color: '#555' } }, `${r.meat.grams} г`),
+      h('span', { className: 'muted', style: { fontSize: '11px' } }, `⏱ ${r.time} мин`)
+    )
+  );
+
+  const arrow = h('span', {
+    className: 'arrow' + (exp ? ' open' : ''),
+    onClick: () => { state.expanded[r.id] = !state.expanded[r.id]; render(); }
+  }, '▾');
+
+  head.append(cb, body, arrow);
+  card.append(head);
+
+  if (exp) {
+    const detail = h('div', { className: 'recipe-detail open' });
+    detail.append(
+      h('div', { style: { marginTop: '10px' } },
+        h('div', { className: 'label', style: { color: r.color } }, '📝 Как заготовить:'),
+        h('div', null, r.recipe)
+      ),
+      h('div', { style: { marginTop: '8px' } },
+        h('div', { className: 'label', style: { color: r.color } }, '🍽 Как подавать вечером:'),
+        h('div', null, r.serve)
+      ),
+      h('div', { style: { marginTop: '8px' } },
+        h('div', { className: 'label', style: { color: r.color } }, '🧾 Ингредиенты:'),
+        ...r.ingredients.map(ing =>
+          h('div', { className: 'ing-row' },
+            h('span', null, ing.name),
+            h('span', null, ing.amount)
+          )
+        )
+      ),
+      h('button', { className: 'btn-outline btn-delete', style: { marginTop: '10px' }, onClick: () => {
+        state.recipes = state.recipes.filter(x => x.id !== r.id);
+        state.activeIds.delete(r.id);
+        save(); render();
+      }}, 'Удалить')
+    );
+    card.append(detail);
+  }
+
+  return card;
+}
+
+// ═══ SHOPPING TAB ═══
+function renderShopping(app, activeRecipes) {
+  const wrap = h('div', { className: 'tab-content active' });
+
+  wrap.append(h('div', { style: { background: '#F0F7F2', borderRadius: '12px', padding: '14px', marginBottom: '12px', textAlign: 'center' } },
+    h('div', { style: { fontWeight: 700, color: '#2D6A4F', fontSize: '15px' } }, `Список на ${state.activeIds.size} заготовок`),
+    h('div', { className: 'muted' }, 'Каждая заготовка делается 1 раз · порция на двоих')
+  ));
+
+  if (state.activeIds.size === 0) {
+    wrap.append(h('div', { style: { textAlign: 'center', padding: '40px', color: '#C4B9AB' } }, 'Включи заготовки во вкладке «Рецепты»'));
+    app.append(wrap); return;
+  }
+
+  const meat = {}, extras = {};
+  activeRecipes.forEach(r => {
+    meat[r.meat.type] = (meat[r.meat.type] || 0) + r.meat.grams;
+    r.ingredients.forEach(ing => {
+      if (!extras[ing.name]) extras[ing.name] = [];
+      extras[ing.name].push({ amount: ing.amount, from: r.name });
+    });
+  });
+
+  wrap.append(h('div', { className: 'h3' }, '🥩 Мясо'));
+  const meatCard = h('div', { className: 'card' });
+  let totalMeat = 0;
+  Object.entries(meat).forEach(([type, grams]) => {
+    totalMeat += grams;
+    const mt = MEAT_TYPES[type] || { emoji: '🍖', label: type };
+    meatCard.append(h('div', { className: 'meat-row' },
+      h('div', null, h('span', { style: { fontSize: '16px', marginRight: '6px' } }, mt.emoji), h('span', { style: { fontWeight: 600 } }, mt.label)),
+      h('span', { style: { fontWeight: 800, fontSize: '15px', color: '#2D6A4F' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
+    ));
+  });
+  meatCard.append(h('div', { className: 'meat-total' }, `Всего мяса: ${(totalMeat/1000).toFixed(1)} кг`));
+  wrap.append(meatCard);
+
+  wrap.append(h('div', { className: 'h3' }, '🛒 Остальные продукты'));
+  const extCard = h('div', { className: 'card' });
+  Object.entries(extras).forEach(([name, entries]) => {
+    extCard.append(h('div', { className: 'extra-row' },
+      h('div', { className: 'extra-head' },
+        h('span', { style: { fontWeight: 600 } }, name),
+        h('span', { className: 'amount' }, entries.length === 1 ? entries[0].amount : entries.map(e => e.amount).join(' + '))
+      ),
+      h('div', { className: 'muted' }, entries.map(e => e.from).join(' · '))
+    ));
+  });
+  wrap.append(extCard);
+
+  wrap.append(h('div', { className: 'h3' }, '🌶️ Специи (проверить)'));
+  wrap.append(h('div', { className: 'card spice-box' }, 'Соль · Чёрный перец · Паприка · Копчёная паприка · Карри · Орегано · Кориандр · Сушёный чеснок · Сушёный имбирь'));
+
+  app.append(wrap);
+}
+
+// ═══ PLANNER TAB ═══
+function renderPlanner(app, activeRecipes) {
+  const wrap = h('div', { className: 'tab-content active' });
+
+  wrap.append(h('div', { className: 'btn-group' },
+    h('button', { className: 'btn', onClick: () => {
+      const sh = [...activeRecipes].sort(() => Math.random() - 0.5);
+      state.plan = DAYS.map((_, i) => i < state.activeIds.size
+        ? { recipeId: sh[i % sh.length].id, side: SIDES[Math.floor(Math.random() * SIDES.length)].name }
+        : { recipeId: null, side: null });
+      state.editingDay = null; save(); render();
+    }}, '✨ Заполнить'),
+    h('button', { className: 'btn-outline', onClick: () => {
+      state.plan = DAYS.map(() => ({ recipeId: null, side: null }));
+      state.editingDay = null; save(); render();
+    }}, 'Сбросить')
+  ));
+
+  const progress = h('div', { className: 'progress' });
+  state.plan.forEach(d => progress.append(h('div', { className: 'progress-dot' + (d.recipeId ? ' filled' : '') })));
+  wrap.append(progress);
+
+  [0, 1].forEach(week => {
+    wrap.append(h('div', { className: 'h3' }, `Неделя ${week + 1}`));
+    for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+      const idx = week * 7 + dayIdx;
+      const d = state.plan[idx];
+      const recipe = d.recipeId ? state.recipes.find(r => r.id === d.recipeId) : null;
+      const isEditing = state.editingDay === idx;
+
+      const row = h('div', {
+        className: 'day-row' + (recipe ? ' filled' : '') + (isEditing ? ' editing' : ''),
+        onClick: () => { state.editingDay = isEditing ? null : idx; render(); }
+      });
+
+      row.append(h('span', { className: 'day-label' }, DAYS[idx]));
+
+      if (recipe) {
+        const content = h('div', { className: 'day-content' });
+        const titleRow = h('div', { style: { display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' } },
+          h('span', null, recipe.emoji),
+          h('span', { style: { fontWeight: 600 } }, recipe.name)
+        );
+        if (d.side) titleRow.append(h('span', { className: 'badge', style: { background: '#F0F7F2', color: '#2D6A4F', fontSize: '10px' } }, d.side));
+        content.append(titleRow);
+        content.append(h('div', { className: 'muted', style: { marginTop: '2px' } },
+          h('span', null, recipe.serve.split('.')[0] + ' · '),
+          h('span', { style: { fontWeight: 700, color: '#2D6A4F' } }, `⏱ ${recipe.time} мин`)
+        ));
+        row.append(content);
+        row.append(h('button', { className: 'day-clear', onClick: (e) => {
+          e.stopPropagation(); state.plan[idx] = { recipeId: null, side: null }; save(); render();
+        }}, '×'));
+      } else {
+        row.append(h('span', { className: 'day-empty' }, 'Нажми, чтобы выбрать'));
+      }
+
+      wrap.append(row);
+
+      if (isEditing) {
+        const editor = h('div', { className: 'editor' });
+        editor.append(h('div', { className: 'h3' }, 'Заготовка'));
+        const chips1 = h('div', { className: 'chip-group' });
+        activeRecipes.forEach(r => {
+          const sel = d.recipeId === r.id;
+          chips1.append(h('button', {
+            className: 'chip' + (sel ? ' selected' : ''),
+            style: sel ? { border: `2px solid ${r.color}`, background: r.bg, color: r.color } : {},
+            onClick: (e) => { e.stopPropagation(); state.plan[idx].recipeId = r.id; save(); render(); }
+          }, `${r.emoji} ${r.name}`));
+        });
+        editor.append(chips1);
+
+        editor.append(h('div', { className: 'h3' }, 'Гарнир'));
+        const chips2 = h('div', { className: 'chip-group' });
+        SIDES.forEach(s => {
+          const sel = d.side === s.name;
+          chips2.append(h('button', {
+            className: 'chip' + (sel ? ' selected' : ''),
+            style: sel ? { border: '2px solid #2D6A4F', background: '#E8F5E9' } : {},
+            onClick: (e) => { e.stopPropagation(); state.plan[idx].side = s.name; save(); render(); }
+          }, `${s.emoji} ${s.name}`));
+        });
+        editor.append(chips2);
+
+        editor.append(h('button', { className: 'btn btn-full', style: { marginTop: '4px' }, onClick: (e) => {
+          e.stopPropagation(); state.editingDay = null; render();
+        }}, '✓ Готово'));
+
+        wrap.append(editor);
+      }
+    }
+  });
+
+  const planned = state.plan.filter(d => d.recipeId).length;
+  if (planned > 0) {
+    wrap.append(h('div', { className: 'summary', style: { marginTop: '8px' } },
+      `Запланировано ${planned} ужин${planned === 1 ? '' : planned < 5 ? 'а' : 'ов'}`
+    ));
+  }
+
+  app.append(wrap);
+}
+
+// ═══ ADD RECIPE TAB ═══
+function renderAddForm(app) {
+  const wrap = h('div', { className: 'tab-content active' });
+  wrap.append(h('h2', { style: { fontSize: '16px', fontWeight: 700, margin: '8px 0' } }, 'Добавить рецепт'));
+  wrap.append(h('p', { className: 'muted' }, 'Новая заготовка сразу появится в рецептах и в закупках'));
+
+  if (!window._addForm) window._addForm = { name:'', type:'chicken', category:'marinade', emoji:'🍳', recipe:'', serve:'', time:'20', meatGrams:'300', ingredients: [{name:'',amount:''}] };
+  const f = window._addForm;
+
+  const field = (label, key, placeholder, type) => {
+    const d = h('div', { className: 'form-group' });
+    d.append(h('div', { className: 'h3' }, label));
+    const inp = h(type === 'textarea' ? 'textarea' : 'input', {
+      value: f[key], placeholder,
+      ...(type === 'number' ? { type: 'number' } : {}),
+      ...(type === 'textarea' ? { rows: '3' } : {}),
+      onInput: (e) => { f[key] = e.target.value; }
+    });
+    d.append(inp);
+    return d;
+  };
+
+  wrap.append(field('Название', 'name', 'Например: Свинина в горчице'));
+
+  const typeRow = h('div', { className: 'form-row' });
+  const typeDiv = h('div'); typeDiv.append(h('div', { className: 'h3' }, 'Мясо'));
+  const tg1 = h('div', { className: 'toggle-group' });
+  ['chicken', 'pork'].forEach(t => {
+    tg1.append(h('button', {
+      className: 'toggle-btn',
+      style: { background: f.type === t ? '#2D6A4F' : '#E8E0D6', color: f.type === t ? '#fff' : '#2B2118' },
+      onClick: () => { f.type = t; render(); }
+    }, t === 'chicken' ? '🍗 Курица' : '🥩 Свинина'));
+  });
+  typeDiv.append(tg1); typeRow.append(typeDiv);
+
+  const catDiv = h('div'); catDiv.append(h('div', { className: 'h3' }, 'Тип'));
+  const tg2 = h('div', { className: 'toggle-group' });
+  ['marinade', 'semi'].forEach(k => {
+    tg2.append(h('button', {
+      className: 'toggle-btn',
+      style: { background: f.category === k ? '#2D6A4F' : '#E8E0D6', color: f.category === k ? '#fff' : '#2B2118', fontSize: '11px' },
+      onClick: () => { f.category = k; render(); }
+    }, k === 'marinade' ? 'Маринад' : 'Полуфабрикат'));
+  });
+  catDiv.append(tg2); typeRow.append(catDiv);
+  wrap.append(typeRow);
+
+  const numRow = h('div', { className: 'form-row' });
+  const emojiDiv = h('div', { className: 'small' }); emojiDiv.append(h('div', { className: 'h3' }, 'Эмодзи'));
+  emojiDiv.append(h('input', { value: f.emoji, onInput: (e) => { f.emoji = e.target.value; } }));
+  numRow.append(emojiDiv);
+  const gramDiv = h('div'); gramDiv.append(h('div', { className: 'h3' }, 'Мясо (г)'));
+  gramDiv.append(h('input', { type: 'number', value: f.meatGrams, onInput: (e) => { f.meatGrams = e.target.value; } }));
+  numRow.append(gramDiv);
+  const timeDiv = h('div'); timeDiv.append(h('div', { className: 'h3' }, 'Время (мин)'));
+  timeDiv.append(h('input', { type: 'number', value: f.time, onInput: (e) => { f.time = e.target.value; } }));
+  numRow.append(timeDiv);
+  wrap.append(numRow);
+
+  wrap.append(field('Рецепт заготовки', 'recipe', 'Как приготовить и заморозить...', 'textarea'));
+  wrap.append(field('Как подавать', 'serve', 'Как готовить из морозилки...', 'textarea'));
+
+  const ingDiv = h('div', { className: 'form-group' });
+  ingDiv.append(h('div', { className: 'h3' }, 'Ингредиенты'));
+  f.ingredients.forEach((ing, i) => {
+    ingDiv.append(h('div', { className: 'ing-form-row' },
+      h('input', { value: ing.name, placeholder: 'Продукт', onInput: (e) => { f.ingredients[i].name = e.target.value; } }),
+      h('input', { value: ing.amount, placeholder: 'Сколько', onInput: (e) => { f.ingredients[i].amount = e.target.value; } })
+    ));
+  });
+  ingDiv.append(h('button', { className: 'btn-outline', style: { fontSize: '11px', padding: '4px 10px', marginTop: '4px' },
+    onClick: () => { f.ingredients.push({ name: '', amount: '' }); render(); }
+  }, '+ ещё'));
+  wrap.append(ingDiv);
+
+  const canSubmit = f.name && f.recipe;
+  wrap.append(h('button', {
+    className: 'btn btn-full',
+    style: { marginTop: '8px', fontSize: '15px', padding: '12px', background: canSubmit ? '#2D6A4F' : '#D4C9BC', cursor: canSubmit ? 'pointer' : 'not-allowed' },
+    onClick: () => {
+      if (!canSubmit) return;
+      const id = f.name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
+      const colors = { chicken: { color: '#B8860B', bg: '#FFF8E1' }, pork: { color: '#8B1A4A', bg: '#FDE8F0' } };
+      const newRecipe = {
+        id, name: f.name, type: f.type, category: f.category, emoji: f.emoji, ...colors[f.type],
+        recipe: f.recipe, serve: f.serve, time: parseInt(f.time) || 20,
+        meat: { type: f.type === 'chicken' ? 'chicken_fillet' : 'pork', grams: parseInt(f.meatGrams) || 300 },
+        ingredients: f.ingredients.filter(i => i.name),
+      };
+      state.recipes.push(newRecipe);
+      state.activeIds.add(newRecipe.id);
+      window._addForm = null;
+      state.tab = 0; save(); render();
+    }
+  }, '✓ Добавить'));
+
+  app.append(wrap);
+}
+
+// ═══ AUTH SCREENS ═══════════════════════════
+function renderScreen(emoji, title, text) {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  app.append(h('div', { style: { textAlign: 'center', padding: '60px 20px', maxWidth: '400px', margin: '0 auto' } },
+    h('div', { style: { fontSize: '48px', marginBottom: '12px' } }, emoji),
+    h('h2', { style: { fontSize: '20px', fontWeight: '800', marginBottom: '12px' } }, title),
+    h('p', { style: { color: '#8A7E72', lineHeight: '1.5' } }, text)
+  ));
+}
+
+function showStub()    { renderScreen('🧊', 'Meal Prep Planner', 'Это приложение работает только внутри Telegram. Откройте его через бота, в которого встроено это приложение.'); }
+function showLoader()  { renderScreen('⏳', 'Подключаемся…', 'Проверяем доступ через Telegram'); }
+function showError(m)  { renderScreen('⚠️', 'Ошибка авторизации', m || 'Неизвестная ошибка. Попробуйте перезапустить приложение.'); }
+
+// ═══ INIT ═══════════════════════════════════
+async function initApp() {
+  const tg = window.Telegram?.WebApp;
+
+  // Не в Telegram — показываем заглушку
+  if (!tg || !tg.initData) {
+    showStub();
+    return;
+  }
+
+  tg.ready();
+  tg.expand();
+  showLoader();
+
+  try {
+    const resp = await fetch(CONFIG.AUTH_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ initData: tg.initData }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    authJwt = data.token;
+    authUser = data.user;
+    supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${authJwt}` } },
+    });
+    console.log('authenticated', authUser);
+
+    // На Этапе 3 — оставляем существующую логику с localStorage
+    load();
+    render();
+  } catch (e) {
+    console.error('auth error', e);
+    showError(e.message);
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
