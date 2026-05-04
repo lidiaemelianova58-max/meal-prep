@@ -82,10 +82,13 @@ textarea { resize: vertical; }
 .ing-form-row input:last-child { flex: 1; }
 .toggle-group { display: flex; gap: 4px; }
 .toggle-btn { font-family: 'Nunito', sans-serif; flex: 1; padding: 6px 8px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; }
+.sync-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); background: #FFE5E5; color: #B71C1C; border: 1.5px solid #EF9A9A; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 700; z-index: 100; max-width: calc(100vw - 16px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+.sync-banner.show { display: block; }
 </style>
 </head>
 <body>
 
+<div class="sync-banner" id="syncBanner"></div>
 <div class="app" id="app"></div>
 
 <script type="module">
@@ -178,6 +181,34 @@ function decorateRecipe(r) {
     ? { color: '#B8860B', bg: '#FFF8E1' }
     : { color: '#8B1A4A', bg: '#FDE8F0' };
   return { ...fallback, ...r };
+}
+
+// ─── Баннер ошибок синхронизации ─────────────────────────────────────────
+let syncBannerTimer = null;
+function showSyncError(msg) {
+  const el = document.getElementById('syncBanner');
+  if (!el) return;
+  el.textContent = `⚠️ Не сохранилось: ${msg}`;
+  el.classList.add('show');
+  if (syncBannerTimer) clearTimeout(syncBannerTimer);
+  syncBannerTimer = setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+// Оптимистичная синхронизация: вызываем supabaseCall в фоне.
+// Если упадёт — показываем баннер и перечитываем реальное состояние из БД.
+async function cloudSync(supabaseCall) {
+  try {
+    await supabaseCall();
+  } catch (e) {
+    console.error('cloud sync failed', e);
+    showSyncError(e.message || 'неизвестная ошибка');
+    try {
+      await loadFromSupabase();
+      render();
+    } catch (e2) {
+      console.error('reload failed', e2);
+    }
+  }
 }
 
 // ─── Чтение из Supabase ──────────────────────────────────────────────────
@@ -296,7 +327,29 @@ function renderRecipeCard(r) {
 
   const cb = h('div', {
     className: 'checkbox' + (active ? ' checked' : ''),
-    onClick: (e) => { e.stopPropagation(); active ? state.activeIds.delete(r.id) : state.activeIds.add(r.id); save(); render(); }
+    onClick: (e) => {
+      e.stopPropagation();
+      const tgId = authUser.telegram_id;
+      if (active) {
+        state.activeIds.delete(r.id);
+        render();
+        cloudSync(async () => {
+          const { error } = await supabase.from('active_recipes')
+            .delete()
+            .eq('user_id', tgId)
+            .eq('recipe_id', r.id);
+          if (error) throw new Error(error.message);
+        });
+      } else {
+        state.activeIds.add(r.id);
+        render();
+        cloudSync(async () => {
+          const { error } = await supabase.from('active_recipes')
+            .insert({ user_id: tgId, recipe_id: r.id });
+          if (error) throw new Error(error.message);
+        });
+      }
+    }
   }, active ? '✓' : '');
 
   const body = h('div', { className: 'card-body', onClick: () => { state.expanded[r.id] = !state.expanded[r.id]; render(); } },
@@ -342,7 +395,16 @@ function renderRecipeCard(r) {
       h('button', { className: 'btn-outline btn-delete', style: { marginTop: '10px' }, onClick: () => {
         state.recipes = state.recipes.filter(x => x.id !== r.id);
         state.activeIds.delete(r.id);
-        save(); render();
+        // План мог ссылаться на этот рецепт — каскад в БД проставит recipe_id=null,
+        // локально убираем сразу для красивого UI
+        state.plan.forEach(d => { if (d.recipeId === r.id) d.recipeId = null; });
+        render();
+        cloudSync(async () => {
+          const { error } = await supabase.from('recipes')
+            .delete()
+            .eq('id', r.id);
+          if (error) throw new Error(error.message);
+        });
       }}, 'Удалить')
     );
     card.append(detail);
@@ -591,20 +653,47 @@ function renderAddForm(app) {
   wrap.append(h('button', {
     className: 'btn btn-full',
     style: { marginTop: '8px', fontSize: '15px', padding: '12px', background: canSubmit ? '#2D6A4F' : '#D4C9BC', cursor: canSubmit ? 'pointer' : 'not-allowed' },
-    onClick: () => {
+    onClick: async () => {
       if (!canSubmit) return;
-      const id = f.name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
-      const colors = { chicken: { color: '#B8860B', bg: '#FFF8E1' }, pork: { color: '#8B1A4A', bg: '#FDE8F0' } };
-      const newRecipe = {
-        id, name: f.name, type: f.type, category: f.category, emoji: f.emoji, ...colors[f.type],
-        recipe: f.recipe, serve: f.serve, time: parseInt(f.time) || 20,
+      const tgId = authUser.telegram_id;
+      const payload = {
+        user_id: tgId,
+        name: f.name,
+        type: f.type,
+        category: f.category,
+        emoji: f.emoji,
+        recipe: f.recipe,
+        serve: f.serve,
+        time: parseInt(f.time) || 20,
         meat: { type: f.type === 'chicken' ? 'chicken_fillet' : 'pork', grams: parseInt(f.meatGrams) || 300 },
         ingredients: f.ingredients.filter(i => i.name),
+        is_default: false,
       };
-      state.recipes.push(newRecipe);
-      state.activeIds.add(newRecipe.id);
-      window._addForm = null;
-      state.tab = 0; save(); render();
+      try {
+        // 1) Создаём рецепт — БД даст uuid
+        const { data: inserted, error: insErr } = await supabase
+          .from('recipes')
+          .insert(payload)
+          .select('id, name, type, category, emoji, recipe, serve, time, meat, ingredients, nutrition')
+          .single();
+        if (insErr) throw new Error(insErr.message);
+
+        // 2) Сразу делаем активным
+        const { error: actErr } = await supabase
+          .from('active_recipes')
+          .insert({ user_id: tgId, recipe_id: inserted.id });
+        if (actErr) throw new Error(actErr.message);
+
+        // 3) Локально применяем
+        state.recipes.push(decorateRecipe(inserted));
+        state.activeIds.add(inserted.id);
+        window._addForm = null;
+        state.tab = 0;
+        render();
+      } catch (e) {
+        console.error('add recipe failed', e);
+        showSyncError(e.message || 'не удалось добавить');
+      }
     }
   }, '✓ Добавить'));
 
