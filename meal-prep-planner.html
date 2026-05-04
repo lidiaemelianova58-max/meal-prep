@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#FDFAF7">
+<meta name="theme-color" content="#F4D3D9">
 <title>Meal Prep Planner 🧊</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -23,68 +23,82 @@
   font-style: normal;
   font-display: swap;
 }
+:root {
+  --bg-page: #F4D3D9;
+  --bg-card-soft: #FCF4F6;
+  --bg-card-white: #FFFFFF;
+  --bg-accent: #C9526B;
+  --bg-tag: #FBE9ED;
+  --text-primary: #3D2A33;
+  --text-secondary: #8A7A82;
+  --text-tertiary: #B19BA3;
+  --text-muted: #D9B5BF;
+  --text-tag: #B14661;
+  --text-tag-dark: #8A2747;
+  --border-dashed: #EFD0D8;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; background: #FDFAF7; color: #2B2118; font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; background: var(--bg-page); color: var(--text-primary); font-size: 14px; -webkit-font-smoothing: antialiased; }
 .app { max-width: 600px; margin: 0 auto; padding: 0 8px 80px; }
 .header { text-align: center; padding: 16px 0 4px; }
 .header h1 { font-size: 20px; font-weight: 800; margin: 4px 0; letter-spacing: -0.3px; }
-.header p { font-size: 12px; color: #8A7E72; }
-.tabs { display: flex; position: sticky; top: 0; z-index: 20; background: #FDFAF7; border-bottom: 2px solid #E8E0D6; padding-top: 8px; }
-.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #8A7E72; border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Gilroy', sans-serif; }
-.tab.active { font-weight: 700; color: #2D6A4F; border-bottom-color: #2D6A4F; }
+.header p { font-size: 12px; color: var(--text-secondary); }
+.tabs { display: flex; position: sticky; top: 0; z-index: 20; background: var(--bg-page); border-bottom: 2px solid var(--border-dashed); padding-top: 8px; }
+.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 500; color: var(--text-secondary); border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Gilroy', sans-serif; }
+.tab.active { font-weight: 700; color: var(--bg-accent); border-bottom-color: var(--bg-accent); }
 .tab-content { display: none; padding-top: 12px; }
 .tab-content.active { display: block; }
-.info-bar { background: #F0F7F2; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-.info-bar .main { font-weight: 700; color: #2D6A4F; }
-.muted { font-size: 12px; color: #8A7E72; }
-.h3 { font-size: 13px; font-weight: 700; color: #8A7E72; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
-.card { border: 1.5px solid #E8E0D6; border-radius: 14px; overflow: hidden; margin-bottom: 8px; background: #fff; }
+.info-bar { background: var(--bg-tag); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.info-bar .main { font-weight: 700; color: var(--bg-accent); }
+.muted { font-size: 12px; color: var(--text-secondary); }
+.h3 { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
+.card { border: 1.5px solid var(--border-dashed); border-radius: 14px; overflow: hidden; margin-bottom: 8px; background: var(--bg-card-white); }
 .card.dimmed { opacity: 0.45; }
 .card-head { padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
-.checkbox { width: 26px; height: 26px; border-radius: 8px; border: 2px solid #D4C9BC; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
-.checkbox.checked { background: #2D6A4F; border-color: #2D6A4F; }
+.checkbox { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border-dashed); background: var(--bg-card-white); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+.checkbox.checked { background: var(--bg-accent); border-color: var(--bg-accent); }
 .card-body { flex: 1; cursor: pointer; }
 .card-title { display: flex; align-items: center; gap: 6px; }
 .card-title .emoji { font-size: 20px; }
 .card-title .name { font-weight: 700; font-size: 14px; }
 .card-meta { display: flex; gap: 6px; margin-top: 3px; flex-wrap: wrap; align-items: center; }
 .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; white-space: nowrap; }
-.arrow { font-size: 18px; color: #C4B9AB; cursor: pointer; padding: 0 4px; transition: transform .2s; }
+.arrow { font-size: 18px; color: var(--text-tertiary); cursor: pointer; padding: 0 4px; transition: transform .2s; }
 .arrow.open { transform: rotate(180deg); }
-.recipe-detail { padding: 0 14px 14px; font-size: 13px; line-height: 1.7; border-top: 1px dashed #E8E0D6; display: none; }
+.recipe-detail { padding: 0 14px 14px; font-size: 13px; line-height: 1.7; border-top: 1px dashed var(--border-dashed); display: none; }
 .recipe-detail.open { display: block; }
 .recipe-detail .label { font-weight: 700; margin-bottom: 2px; }
-.recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted #EEE; }
+.recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted var(--border-dashed); }
 .recipe-detail .ing-row span:last-child { font-weight: 600; white-space: nowrap; }
-.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 16px; border: none; border-radius: 20px; background: #2D6A4F; color: #fff; cursor: pointer; }
-.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border: 1.5px solid #D4C9BC; border-radius: 20px; background: transparent; color: #8A7E72; cursor: pointer; }
-.btn-delete { font-size: 11px; padding: 4px 12px; color: #C4430A; border-color: #C4430A; }
+.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 16px; border: none; border-radius: 20px; background: var(--bg-accent); color: #fff; cursor: pointer; }
+.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border: 1.5px solid var(--border-dashed); border-radius: 20px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.btn-delete { font-size: 11px; padding: 4px 12px; color: var(--text-tag-dark); border-color: var(--text-tag-dark); }
 .btn-full { width: 100%; }
 .btn-group { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
 .progress { display: flex; gap: 2px; margin-bottom: 14px; }
-.progress-dot { flex: 1; height: 6px; border-radius: 3px; background: #E8E0D6; transition: background .2s; }
-.progress-dot.filled { background: #2D6A4F; }
-.day-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid #E8E0D6; background: #fff; cursor: pointer; margin-bottom: 4px; }
-.day-row.filled { background: #FDFAF7; }
-.day-row.editing { border: 2px solid #2D6A4F; border-radius: 12px 12px 0 0; margin-bottom: 0; }
-.day-label { font-weight: 700; color: #8A7E72; min-width: 22px; font-size: 13px; }
-.day-empty { flex: 1; color: #C4B9AB; font-style: italic; font-size: 13px; }
+.progress-dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border-dashed); transition: background .2s; }
+.progress-dot.filled { background: var(--bg-accent); }
+.day-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border-dashed); background: var(--bg-card-white); cursor: pointer; margin-bottom: 4px; }
+.day-row.filled { background: var(--bg-card-soft); }
+.day-row.editing { border: 2px solid var(--bg-accent); border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.day-label { font-weight: 700; color: var(--text-secondary); min-width: 22px; font-size: 13px; }
+.day-empty { flex: 1; color: var(--text-tertiary); font-style: italic; font-size: 13px; }
 .day-content { flex: 1; min-width: 0; }
-.day-clear { background: none; border: none; color: #C4B9AB; cursor: pointer; font-size: 18px; padding: 0 4px; }
-.editor { background: #FDFAF7; border: 1.5px solid #E8E0D6; border-top: none; border-radius: 0 0 12px 12px; padding: 12px; margin-bottom: 4px; }
+.day-clear { background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 18px; padding: 0 4px; }
+.editor { background: var(--bg-card-soft); border: 1.5px solid var(--border-dashed); border-top: none; border-radius: 0 0 12px 12px; padding: 12px; margin-bottom: 4px; }
 .chip-group { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-.chip { font-family: 'Gilroy'; font-size: 11px; font-weight: 500; padding: 5px 8px; border-radius: 8px; border: 1.5px solid #D4C9BC; background: #fff; cursor: pointer; color: #2B2118; }
+.chip { font-family: 'Gilroy'; font-size: 11px; font-weight: 500; padding: 5px 8px; border-radius: 8px; border: 1.5px solid var(--border-dashed); background: var(--bg-card-white); cursor: pointer; color: var(--text-primary); }
 .chip.selected { font-weight: 700; }
-.meat-row { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0EBE4; }
+.meat-row { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dashed); }
 .meat-row:last-child { border-bottom: none; }
-.meat-total { padding: 8px 14px; background: #F0F7F2; font-size: 13px; font-weight: 700; color: #2D6A4F; text-align: right; }
-.extra-row { padding: 8px 14px; border-bottom: 1px solid #F0EBE4; }
+.meat-total { padding: 8px 14px; background: var(--bg-tag); font-size: 13px; font-weight: 700; color: var(--bg-accent); text-align: right; }
+.extra-row { padding: 8px 14px; border-bottom: 1px solid var(--border-dashed); }
 .extra-row:last-child { border-bottom: none; }
 .extra-head { display: flex; justify-content: space-between; align-items: baseline; }
 .extra-head .amount { font-weight: 700; white-space: nowrap; margin-left: 8px; }
-.spice-box { padding: 14px; font-size: 13px; color: #8A7E72; line-height: 1.8; }
-.summary { background: #F0F7F2; border-radius: 12px; padding: 14px; text-align: center; font-weight: 700; color: #2D6A4F; }
-input, textarea { font-family: 'Gilroy', sans-serif; font-size: 13px; padding: 8px 12px; border: 1.5px solid #D4C9BC; border-radius: 10px; width: 100%; outline: none; background: #fff; }
+.spice-box { padding: 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+.summary { background: var(--bg-tag); border-radius: 12px; padding: 14px; text-align: center; font-weight: 700; color: var(--bg-accent); }
+input, textarea { font-family: 'Gilroy', sans-serif; font-size: 13px; padding: 8px 12px; border: 1.5px solid var(--border-dashed); border-radius: 10px; width: 100%; outline: none; background: var(--bg-card-white); }
 textarea { resize: vertical; }
 .form-group { margin-bottom: 10px; }
 .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
@@ -143,9 +157,9 @@ const SIDES = [
 const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс","Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
 
 const DEFAULT_RECIPES = [
-  { id:"bbq",name:"Курица BBQ",type:"chicken",category:"marinade",emoji:"🔥",color:"#C4430A",bg:"#FFF0E8",recipe:"Бёдра/филе + соус BBQ (80 мл) + 2 зубч. чеснока + копчёная паприка (1 ч.л). Перемешать, в плоский пакет.",serve:"Сковорода 15 мин. Подавать с рисом и огурцами.",time:20,meat:{type:"chicken_thigh",grams:250},ingredients:[{name:"Соус BBQ",amount:"80 мл"},{name:"Чеснок",amount:"2 зубч."},{name:"Копчёная паприка",amount:"1 ч.л"}]},
+  { id:"bbq",name:"Курица BBQ",type:"chicken",category:"marinade",emoji:"🔥",color:"var(--text-tag-dark)",bg:"#FFF0E8",recipe:"Бёдра/филе + соус BBQ (80 мл) + 2 зубч. чеснока + копчёная паприка (1 ч.л). Перемешать, в плоский пакет.",serve:"Сковорода 15 мин. Подавать с рисом и огурцами.",time:20,meat:{type:"chicken_thigh",grams:250},ingredients:[{name:"Соус BBQ",amount:"80 мл"},{name:"Чеснок",amount:"2 зубч."},{name:"Копчёная паприка",amount:"1 ч.л"}]},
   { id:"curry",name:"Курица Карри",type:"chicken",category:"marinade",emoji:"🍛",color:"#B8860B",bg:"#FFF8E1",recipe:"Филе + йогурт (150 г) + карри (1 ст.л) + 2 зубч. чеснока. В плоский пакет.",serve:"Сковорода 15 мин. Подавать с рисом и йогуртом.",time:20,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Греческий йогурт",amount:"150 г"},{name:"Карри",amount:"1 ст.л"},{name:"Чеснок",amount:"2 зубч."}]},
-  { id:"asian",name:"Курица Азия",type:"chicken",category:"marinade",emoji:"🥢",color:"#2D6A4F",bg:"#E8F5E9",recipe:"Филе + соевый соус (30 мл) + мёд (1 ст.л) + имбирь тёртый (1 ч.л) + 2 зубч. чеснока + кунжут. В пакет.",serve:"Сковорода 12 мин. С рисом/лапшой, посыпать кунжутом.",time:15,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Соевый соус",amount:"30 мл"},{name:"Мёд",amount:"1 ст.л"},{name:"Имбирь",amount:"1 ч.л тёртый"},{name:"Чеснок",amount:"2 зубч."},{name:"Кунжут",amount:"1 ст.л"}]},
+  { id:"asian",name:"Курица Азия",type:"chicken",category:"marinade",emoji:"🥢",color:"var(--bg-accent)",bg:"#E8F5E9",recipe:"Филе + соевый соус (30 мл) + мёд (1 ст.л) + имбирь тёртый (1 ч.л) + 2 зубч. чеснока + кунжут. В пакет.",serve:"Сковорода 12 мин. С рисом/лапшой, посыпать кунжутом.",time:15,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Соевый соус",amount:"30 мл"},{name:"Мёд",amount:"1 ст.л"},{name:"Имбирь",amount:"1 ч.л тёртый"},{name:"Чеснок",amount:"2 зубч."},{name:"Кунжут",amount:"1 ст.л"}]},
   { id:"kefir",name:"Курица Кефирная",type:"chicken",category:"marinade",emoji:"🥛",color:"#6A5ACD",bg:"#F0EDFF",recipe:"Филе + кефир (200 мл) + кинза (пучок) + 2-3 зубч. чеснока + яблочный уксус (20 мл). В пакет.",serve:"Сковорода 15 мин. С овощами и лавашом.",time:15,meat:{type:"chicken_fillet",grams:250},ingredients:[{name:"Кефир",amount:"200 мл"},{name:"Кинза",amount:"1 пучок"},{name:"Чеснок",amount:"2-3 зубч."},{name:"Яблочный уксус",amount:"20 мл"}]},
   { id:"corn_cutlets",name:"Котлеты с кукурузой",type:"chicken",category:"semi",emoji:"🌽",color:"#D4A017",bg:"#FFFDE7",recipe:"Мелко порубить 300 г филе. + ½ банки кукурузы + 75 г сыра тёрт. + 1 яйцо + 1.5 ст.л сметаны + 1 ст.л муки + соль/перец. Сформовать котлеты, на пергамент → морозилка.",serve:"Жарить на среднем огне по 5 мин/сторону. С пюре и салатом.",time:20,meat:{type:"chicken_fillet",grams:300},ingredients:[{name:"Кукуруза консерв.",amount:"½ банки"},{name:"Сыр твёрдый",amount:"75 г"},{name:"Яйцо",amount:"1 шт"},{name:"Сметана",amount:"1.5 ст.л"},{name:"Мука",amount:"1 ст.л"}]},
   { id:"mushroom_cutlets",name:"Котлеты с грибами",type:"chicken",category:"semi",emoji:"🍄",color:"#795548",bg:"#EFEBE9",recipe:"Порубить 300 г филе. Обжарить 200 г шампиньонов + 1 лук. + 1 яйцо + 1.5 ст.л сметаны + 1 ст.л муки + соль. Сформовать → морозилка.",serve:"Жарить под крышкой 12 мин. С пастой и сметаной.",time:20,meat:{type:"chicken_fillet",grams:300},ingredients:[{name:"Шампиньоны",amount:"200 г"},{name:"Лук",amount:"1 шт"},{name:"Яйцо",amount:"1 шт"},{name:"Сметана",amount:"1.5 ст.л"},{name:"Мука",amount:"1 ст.л"}]},
@@ -186,8 +200,8 @@ function getCurrentMonday() {
 // В БД нет color/bg — подставляем по типу мяса.
 function decorateRecipe(r) {
   const fallback = r.type === 'chicken'
-    ? { color: '#B8860B', bg: '#FFF8E1' }
-    : { color: '#8B1A4A', bg: '#FDE8F0' };
+    ? { color: 'var(--text-tag)',      bg: 'var(--bg-tag)' }
+    : { color: 'var(--text-tag-dark)', bg: 'var(--bg-tag)' };
   return { ...fallback, ...r };
 }
 
@@ -391,7 +405,7 @@ function renderRecipeCard(r) {
     ),
     h('div', { className: 'card-meta' },
       h('span', { className: 'badge', style: { background: r.bg, color: r.color } }, r.category === 'marinade' ? 'маринад' : 'полуфабрикат'),
-      h('span', { className: 'badge', style: { background: '#F5F5F5', color: '#555' } }, `${r.meat.grams} г`),
+      h('span', { className: 'badge', style: { background: 'var(--bg-card-soft)', color: 'var(--text-secondary)' } }, `${r.meat.grams} г`),
       h('span', { className: 'muted', style: { fontSize: '11px' } }, `⏱ ${r.time} мин`)
     )
   );
@@ -449,13 +463,13 @@ function renderRecipeCard(r) {
 function renderShopping(app, activeRecipes) {
   const wrap = h('div', { className: 'tab-content active' });
 
-  wrap.append(h('div', { style: { background: '#F0F7F2', borderRadius: '12px', padding: '14px', marginBottom: '12px', textAlign: 'center' } },
-    h('div', { style: { fontWeight: 700, color: '#2D6A4F', fontSize: '15px' } }, `Список на ${state.activeIds.size} заготовок`),
+  wrap.append(h('div', { style: { background: 'var(--bg-tag)', borderRadius: '12px', padding: '14px', marginBottom: '12px', textAlign: 'center' } },
+    h('div', { style: { fontWeight: 700, color: 'var(--bg-accent)', fontSize: '15px' } }, `Список на ${state.activeIds.size} заготовок`),
     h('div', { className: 'muted' }, 'Каждая заготовка делается 1 раз · порция на двоих')
   ));
 
   if (state.activeIds.size === 0) {
-    wrap.append(h('div', { style: { textAlign: 'center', padding: '40px', color: '#C4B9AB' } }, 'Включи заготовки во вкладке «Рецепты»'));
+    wrap.append(h('div', { style: { textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' } }, 'Включи заготовки во вкладке «Рецепты»'));
     app.append(wrap); return;
   }
 
@@ -476,7 +490,7 @@ function renderShopping(app, activeRecipes) {
     const mt = MEAT_TYPES[type] || { emoji: '🍖', label: type };
     meatCard.append(h('div', { className: 'meat-row' },
       h('div', null, h('span', { style: { fontSize: '16px', marginRight: '6px' } }, mt.emoji), h('span', { style: { fontWeight: 600 } }, mt.label)),
-      h('span', { style: { fontWeight: 800, fontSize: '15px', color: '#2D6A4F' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
+      h('span', { style: { fontWeight: 800, fontSize: '15px', color: 'var(--bg-accent)' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
     ));
   });
   meatCard.append(h('div', { className: 'meat-total' }, `Всего мяса: ${(totalMeat/1000).toFixed(1)} кг`));
@@ -578,11 +592,11 @@ function renderPlanner(app, activeRecipes) {
           h('span', null, recipe.emoji),
           h('span', { style: { fontWeight: 600 } }, recipe.name)
         );
-        if (d.side) titleRow.append(h('span', { className: 'badge', style: { background: '#F0F7F2', color: '#2D6A4F', fontSize: '10px' } }, d.side));
+        if (d.side) titleRow.append(h('span', { className: 'badge', style: { background: 'var(--bg-tag)', color: 'var(--bg-accent)', fontSize: '10px' } }, d.side));
         content.append(titleRow);
         content.append(h('div', { className: 'muted', style: { marginTop: '2px' } },
           h('span', null, recipe.serve.split('.')[0] + ' · '),
-          h('span', { style: { fontWeight: 700, color: '#2D6A4F' } }, `⏱ ${recipe.time} мин`)
+          h('span', { style: { fontWeight: 700, color: 'var(--bg-accent)' } }, `⏱ ${recipe.time} мин`)
         ));
         row.append(content);
         row.append(h('button', { className: 'day-clear', onClick: (e) => {
@@ -641,7 +655,7 @@ function renderPlanner(app, activeRecipes) {
           const sel = d.side === s.name;
           chips2.append(h('button', {
             className: 'chip' + (sel ? ' selected' : ''),
-            style: sel ? { border: '2px solid #2D6A4F', background: '#E8F5E9' } : {},
+            style: sel ? { border: '2px solid var(--bg-accent)', background: 'var(--bg-tag)' } : {},
             onClick: (e) => {
               e.stopPropagation();
               const tgId = authUser.telegram_id;
@@ -714,7 +728,7 @@ function renderAddForm(app) {
   ['chicken', 'pork'].forEach(t => {
     tg1.append(h('button', {
       className: 'toggle-btn',
-      style: { background: f.type === t ? '#2D6A4F' : '#E8E0D6', color: f.type === t ? '#fff' : '#2B2118' },
+      style: { background: f.type === t ? 'var(--bg-accent)' : 'var(--border-dashed)', color: f.type === t ? '#fff' : 'var(--text-primary)' },
       onClick: () => { f.type = t; render(); }
     }, t === 'chicken' ? '🍗 Курица' : '🥩 Свинина'));
   });
@@ -725,7 +739,7 @@ function renderAddForm(app) {
   ['marinade', 'semi'].forEach(k => {
     tg2.append(h('button', {
       className: 'toggle-btn',
-      style: { background: f.category === k ? '#2D6A4F' : '#E8E0D6', color: f.category === k ? '#fff' : '#2B2118', fontSize: '11px' },
+      style: { background: f.category === k ? 'var(--bg-accent)' : 'var(--border-dashed)', color: f.category === k ? '#fff' : 'var(--text-primary)', fontSize: '11px' },
       onClick: () => { f.category = k; render(); }
     }, k === 'marinade' ? 'Маринад' : 'Полуфабрикат'));
   });
@@ -763,7 +777,7 @@ function renderAddForm(app) {
   const canSubmit = f.name && f.recipe;
   wrap.append(h('button', {
     className: 'btn btn-full',
-    style: { marginTop: '8px', fontSize: '15px', padding: '12px', background: canSubmit ? '#2D6A4F' : '#D4C9BC', cursor: canSubmit ? 'pointer' : 'not-allowed' },
+    style: { marginTop: '8px', fontSize: '15px', padding: '12px', background: canSubmit ? 'var(--bg-accent)' : 'var(--border-dashed)', cursor: canSubmit ? 'pointer' : 'not-allowed' },
     onClick: async () => {
       if (!canSubmit) return;
       const tgId = authUser.telegram_id;
@@ -818,7 +832,7 @@ function renderScreen(emoji, title, text) {
   app.append(h('div', { style: { textAlign: 'center', padding: '60px 20px', maxWidth: '400px', margin: '0 auto' } },
     h('div', { style: { fontSize: '48px', marginBottom: '12px' } }, emoji),
     h('h2', { style: { fontSize: '20px', fontWeight: '800', marginBottom: '12px' } }, title),
-    h('p', { style: { color: '#8A7E72', lineHeight: '1.5' } }, text)
+    h('p', { style: { color: 'var(--text-secondary)', lineHeight: '1.5' } }, text)
   ));
 }
 
