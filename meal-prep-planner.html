@@ -142,13 +142,16 @@ const DEFAULT_RECIPES = [
 // ═══════════════════ STATE ═══════════════════
 let state = {
   tab: 0,
-  recipes: JSON.parse(JSON.stringify(DEFAULT_RECIPES)),
-  activeIds: new Set(DEFAULT_RECIPES.map(r => r.id)),
-  plan: DAYS.map(() => ({ recipeId: null, side: null })),
+  recipes: [],
+  activeIds: new Set(),
+  plan: DAYS.map(() => ({ recipeId: null, side: null, status: null })),
   expanded: {},
   editingDay: null,
+  weekStart: null,
 };
 
+// Локальный фоллбэк (на 4.1 ещё используется для не-cloud действий галочки/удаления).
+// Уберу в 4.2, когда все записи пойдут через Supabase.
 function save() {
   try {
     const s = { ...state, activeIds: [...state.activeIds] };
@@ -156,15 +159,67 @@ function save() {
   } catch(e) {}
 }
 
-function load() {
-  try {
-    const raw = localStorage.getItem('mealprep');
-    if (!raw) return;
-    const s = JSON.parse(raw);
-    state.recipes = s.recipes || state.recipes;
-    state.activeIds = new Set(s.activeIds || []);
-    state.plan = s.plan || state.plan;
-  } catch(e) {}
+// ─── Хелперы ─────────────────────────────────────────────────────────────
+// Понедельник текущей недели в формате YYYY-MM-DD (для plan.week_start)
+function getCurrentMonday() {
+  const d = new Date();
+  const day = d.getDay();              // 0=Вс, 1=Пн, ..., 6=Сб
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// В БД нет color/bg — подставляем по типу мяса.
+function decorateRecipe(r) {
+  const fallback = r.type === 'chicken'
+    ? { color: '#B8860B', bg: '#FFF8E1' }
+    : { color: '#8B1A4A', bg: '#FDE8F0' };
+  return { ...fallback, ...r };
+}
+
+// ─── Чтение из Supabase ──────────────────────────────────────────────────
+async function loadFromSupabase() {
+  const tgId = authUser.telegram_id;
+  state.weekStart = getCurrentMonday();
+
+  // 1) Рецепты пользователя
+  const { data: recipes, error: rErr } = await supabase
+    .from('recipes')
+    .select('id, name, type, category, emoji, recipe, serve, time, meat, ingredients, nutrition')
+    .eq('user_id', tgId)
+    .order('created_at', { ascending: true });
+  if (rErr) throw new Error(`Загрузка рецептов: ${rErr.message}`);
+  state.recipes = (recipes || []).map(decorateRecipe);
+
+  // 2) Активные (галочки)
+  const { data: actives, error: aErr } = await supabase
+    .from('active_recipes')
+    .select('recipe_id')
+    .eq('user_id', tgId);
+  if (aErr) throw new Error(`Загрузка активных: ${aErr.message}`);
+  state.activeIds = new Set((actives || []).map(a => a.recipe_id));
+
+  // 3) План на текущую неделю
+  const { data: planRows, error: pErr } = await supabase
+    .from('plan')
+    .select('day_index, recipe_id, side, status')
+    .eq('user_id', tgId)
+    .eq('week_start', state.weekStart);
+  if (pErr) throw new Error(`Загрузка плана: ${pErr.message}`);
+
+  state.plan = DAYS.map(() => ({ recipeId: null, side: null, status: null }));
+  (planRows || []).forEach(row => {
+    if (row.day_index >= 0 && row.day_index < 14) {
+      state.plan[row.day_index] = {
+        recipeId: row.recipe_id,
+        side: row.side,
+        status: row.status,
+      };
+    }
+  });
 }
 
 // ═══════════════════ RENDER ═══════════════════
@@ -607,11 +662,11 @@ async function initApp() {
     });
     console.log('authenticated', authUser);
 
-    // На Этапе 3 — оставляем существующую логику с localStorage
-    load();
+    // Этап 4.1 — читаем рецепты, активные и план из Supabase
+    await loadFromSupabase();
     render();
   } catch (e) {
-    console.error('auth error', e);
+    console.error('init error', e);
     showError(e.message);
   }
 }
