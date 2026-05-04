@@ -125,6 +125,16 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .extra-head { display: flex; justify-content: space-between; align-items: baseline; }
 .extra-head .amount { font-weight: 300; white-space: nowrap; margin-left: 8px; }
 .spice-box { padding: 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+.status-icon { display: inline-block; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; line-height: 20px; text-align: center; flex-shrink: 0; background: var(--graphite-soft); }
+.status-icon.prepped { background: rgba(120, 180, 255, 0.18); color: #B8DCF7; }
+.status-icon.thawing { background: rgba(244, 220, 218, 0.18); color: var(--hero-bg); }
+.status-icon.done    { background: rgba(140, 230, 160, 0.18); color: #A8E5B8; }
+.prep-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border-dashed); }
+.prep-row:last-child { border-bottom: none; }
+.prep-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+.prep-action { font-family: 'Gilroy', sans-serif; font-weight: 300; font-size: 11px; padding: 6px 12px; border-radius: var(--radius-pill); border: none; cursor: pointer; white-space: nowrap; }
+.prep-action.todo { background: var(--hero-bg); color: var(--hero-text); }
+.prep-action.done { background: transparent; color: var(--text-secondary); border: 1.5px solid var(--graphite-soft); }
 .shop-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border-dashed); }
 .shop-row:last-child { border-bottom: none; }
 .shop-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--graphite-soft); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
@@ -275,6 +285,77 @@ function updateOfflineBanner() {
 }
 window.addEventListener('online',  updateOfflineBanner);
 window.addEventListener('offline', updateOfflineBanner);
+
+// ─── Статусы заготовок ────────────────────────────────────────────────────
+const STATUS = {
+  prepped: { icon: '🧊', label: 'Заготовлено' },
+  thawing: { icon: '💧', label: 'Размораживается' },
+  done:    { icon: '✓',  label: 'Съедено' },
+};
+function statusIcon(s) {
+  if (!s) return null;
+  const sd = STATUS[s];
+  if (!sd) return null;
+  return h('span', { className: 'status-icon ' + s, title: sd.label }, sd.icon);
+}
+
+// «Заготовил рецепт»: проставить status='prepped' для всех дней с этим рецептом.
+// Toggle: если все дни уже prepped/thawing/done — сбрасываем в null (ошибся).
+async function toggleRecipePrepped(recipeId) {
+  const tgId = authUser.telegram_id;
+  const days = state.plan
+    .map((d, i) => ({ d, i }))
+    .filter(({ d }) => d.recipeId === recipeId);
+  if (days.length === 0) return;
+
+  const allDone = days.every(({ d }) => d.status);
+  const newStatus = allDone ? null : 'prepped';
+
+  // Локально применяем
+  days.forEach(({ i }) => { state.plan[i].status = newStatus; });
+  render();
+
+  cloudSync(async () => {
+    const rows = days.map(({ d, i }) => ({
+      user_id: tgId,
+      week_start: state.weekStart,
+      day_index: i,
+      recipe_id: d.recipeId,
+      side: d.side,
+      status: newStatus,
+    }));
+    const { error } = await supabase.from('plan').upsert(rows, {
+      onConflict: 'user_id,week_start,day_index',
+    });
+    if (error) throw new Error(error.message);
+  });
+}
+
+// Сдвинуть статус одного дня: prepped → thawing → done → null → prepped
+async function advanceDayStatus(idx) {
+  const tgId = authUser.telegram_id;
+  const cur = state.plan[idx].status;
+  const next = cur === 'prepped' ? 'thawing'
+             : cur === 'thawing' ? 'done'
+             : cur === 'done'    ? null
+             :                     'prepped';
+
+  state.plan[idx].status = next;
+  render();
+
+  cloudSync(async () => {
+    const d = state.plan[idx];
+    const { error } = await supabase.from('plan').upsert({
+      user_id: tgId,
+      week_start: state.weekStart,
+      day_index: idx,
+      recipe_id: d.recipeId,
+      side: d.side,
+      status: d.status,
+    }, { onConflict: 'user_id,week_start,day_index' });
+    if (error) throw new Error(error.message);
+  });
+}
 
 // ─── Купленное ────────────────────────────────────────────────────────────
 function togglePurchased(key) {
@@ -668,6 +749,31 @@ function renderPlanner(app, activeRecipes) {
   state.plan.forEach(d => progress.append(h('div', { className: 'progress-dot' + (d.recipeId ? ' filled' : '') })));
   wrap.append(progress);
 
+  // Блок «Заготовка» — список рецептов из плана + кнопка «Заготовил»
+  const plannedRecipeIds = [...new Set(state.plan.map(d => d.recipeId).filter(Boolean))];
+  if (plannedRecipeIds.length > 0) {
+    wrap.append(h('div', { className: 'h3' }, '🥶 Заготовка'));
+    const prepCard = h('div', { className: 'card' });
+    plannedRecipeIds.forEach(rid => {
+      const r = state.recipes.find(x => x.id === rid);
+      if (!r) return;
+      const days = state.plan.filter(d => d.recipeId === rid);
+      const allDone = days.every(d => d.status);
+      prepCard.append(h('div', { className: 'prep-row' },
+        h('div', { className: 'prep-name' },
+          h('span', null, r.emoji),
+          h('span', null, r.name),
+          h('span', { className: 'muted', style: { fontSize: '11px' } }, ` × ${days.length}`)
+        ),
+        h('button', {
+          className: 'prep-action ' + (allDone ? 'done' : 'todo'),
+          onClick: () => toggleRecipePrepped(rid),
+        }, allDone ? '✓ Заготовлено' : 'Заготовил')
+      ));
+    });
+    wrap.append(prepCard);
+  }
+
   [0, 1].forEach(week => {
     wrap.append(h('div', { className: 'h3' }, `Неделя ${week + 1}`));
     for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
@@ -696,6 +802,7 @@ function renderPlanner(app, activeRecipes) {
           h('span', { style: { fontWeight: 300, color: 'var(--bg-accent)' } }, `⏱ ${recipe.time} мин`)
         ));
         row.append(content);
+        if (d.status) row.append(statusIcon(d.status));
         row.append(h('button', { className: 'day-clear', onClick: (e) => {
           e.stopPropagation();
           const tgId = authUser.telegram_id;
