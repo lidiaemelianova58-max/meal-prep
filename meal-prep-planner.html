@@ -135,6 +135,11 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .prep-action { font-family: 'Gilroy', sans-serif; font-weight: 300; font-size: 11px; padding: 6px 12px; border-radius: var(--radius-pill); border: none; cursor: pointer; white-space: nowrap; }
 .prep-action.todo { background: var(--hero-bg); color: var(--hero-text); }
 .prep-action.done { background: transparent; color: var(--text-secondary); border: 1.5px solid var(--graphite-soft); }
+.nutrition { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px; border-radius: var(--radius-row); background: var(--bg-tag); margin: 8px 0; }
+.nutrition.compact { padding: 6px; gap: 4px; }
+.nut-cell { text-align: center; padding: 4px 2px; }
+.nut-num { font-size: 14px; font-weight: 300; color: var(--text-primary); }
+.nut-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-top: 2px; }
 .shop-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border-dashed); }
 .shop-row:last-child { border-bottom: none; }
 .shop-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--graphite-soft); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
@@ -234,6 +239,7 @@ let state = {
   editingDay: null,
   weekStart: null,
   purchased: new Set(),
+  sides: {},
 };
 
 // ─── Хелперы ─────────────────────────────────────────────────────────────
@@ -452,6 +458,38 @@ async function loadFromSupabase() {
     .eq('user_id', tgId);
   if (pErr2) throw new Error(`Загрузка купленного: ${pErr2.message}`);
   state.purchased = new Set((purchased || []).map(p => p.product_key));
+
+  // 5) Гарниры (дефолтные + пользовательские)
+  const { data: sides, error: sErr } = await supabase
+    .from('sides')
+    .select('name, emoji, portion, nutrition');
+  if (sErr) throw new Error(`Загрузка гарниров: ${sErr.message}`);
+  state.sides = {};
+  (sides || []).forEach(s => { state.sides[s.name] = s; });
+}
+
+// ─── КБЖУ ─────────────────────────────────────────────────────────────────
+function computeMealNutrition(recipe, sideName) {
+  const r = recipe?.nutrition;
+  const s = sideName ? state.sides[sideName]?.nutrition : null;
+  if (!r && !s) return null;
+  const sum = (a, b) => (a || 0) + (b || 0);
+  return {
+    kcal:    sum(r?.kcal,    s?.kcal),
+    protein: sum(r?.protein, s?.protein),
+    fat:     sum(r?.fat,     s?.fat),
+    carbs:   sum(r?.carbs,   s?.carbs),
+  };
+}
+function nutritionRow(n, opts = {}) {
+  if (!n || !n.kcal) return null;
+  const compact = opts.compact;
+  return h('div', { className: 'nutrition' + (compact ? ' compact' : '') },
+    h('div', { className: 'nut-cell' }, h('div', { className: 'nut-num' }, Math.round(n.kcal)), h('div', { className: 'nut-lbl' }, 'ккал')),
+    h('div', { className: 'nut-cell' }, h('div', { className: 'nut-num' }, Math.round(n.protein) + 'г'), h('div', { className: 'nut-lbl' }, 'белк')),
+    h('div', { className: 'nut-cell' }, h('div', { className: 'nut-num' }, Math.round(n.fat) + 'г'),     h('div', { className: 'nut-lbl' }, 'жир')),
+    h('div', { className: 'nut-cell' }, h('div', { className: 'nut-num' }, Math.round(n.carbs) + 'г'),   h('div', { className: 'nut-lbl' }, 'угл'))
+  );
 }
 
 // ═══════════════════ RENDER ═══════════════════
@@ -572,6 +610,9 @@ function renderToday(app, activeRecipes) {
   if (day.side) {
     dishCard.append(h('div', { className: 'muted', style: { marginBottom: '10px' } }, `Гарнир: ${day.side}`));
   }
+  const todayN = computeMealNutrition(recipe, day.side);
+  const todayNRow = nutritionRow(todayN, { compact: true });
+  if (todayNRow) dishCard.append(todayNRow);
   dishCard.append(h('div', { style: { fontSize: '13px', marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed var(--border-dashed)' } },
     h('div', { className: 'h3', style: { margin: '0 0 4px' } }, 'Как готовить'),
     h('div', null, recipe.serve)
@@ -695,6 +736,8 @@ function renderRecipeCard(r) {
 
   if (exp) {
     const detail = h('div', { className: 'recipe-detail open' });
+    const recipeN = nutritionRow(r.nutrition, { compact: false });
+    if (recipeN) detail.append(recipeN);
     detail.append(
       h('div', { style: { marginTop: '10px' } },
         h('div', { className: 'label', style: { color: r.color } }, '📝 Как заготовить:'),
@@ -1013,6 +1056,35 @@ function renderPlanner(app, activeRecipes) {
     wrap.append(h('div', { className: 'summary', style: { marginTop: '8px' } },
       `Запланировано ${planned} ужин${planned === 1 ? '' : planned < 5 ? 'а' : 'ов'}`
     ));
+
+    // Среднее КБЖУ за ужин — по дням с полными данными
+    const fullDays = state.plan.filter(d => {
+      if (!d.recipeId) return false;
+      const r = state.recipes.find(x => x.id === d.recipeId);
+      return r?.nutrition?.kcal != null;
+    });
+    if (fullDays.length > 0) {
+      const totals = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
+      fullDays.forEach(d => {
+        const r = state.recipes.find(x => x.id === d.recipeId);
+        const n = computeMealNutrition(r, d.side);
+        if (n) {
+          totals.kcal    += n.kcal    || 0;
+          totals.protein += n.protein || 0;
+          totals.fat     += n.fat     || 0;
+          totals.carbs   += n.carbs   || 0;
+        }
+      });
+      const avg = {
+        kcal:    totals.kcal    / fullDays.length,
+        protein: totals.protein / fullDays.length,
+        fat:     totals.fat     / fullDays.length,
+        carbs:   totals.carbs   / fullDays.length,
+      };
+      wrap.append(h('div', { className: 'h3', style: { marginTop: '14px' } }, `Среднее за ужин (${fullDays.length}/${planned} с КБЖУ)`));
+      const avgRow = nutritionRow(avg, { compact: false });
+      if (avgRow) wrap.append(avgRow);
+    }
   }
 
   app.append(wrap);
@@ -1024,7 +1096,7 @@ function renderAddForm(app) {
   wrap.append(h('h2', { style: { fontSize: '16px', fontWeight: 300, margin: '8px 0' } }, 'Добавить рецепт'));
   wrap.append(h('p', { className: 'muted' }, 'Новая заготовка сразу появится в рецептах и в закупках'));
 
-  if (!window._addForm) window._addForm = { name:'', type:'chicken', category:'marinade', emoji:'🍳', recipe:'', serve:'', time:'20', meatGrams:'300', ingredients: [{name:'',amount:''}] };
+  if (!window._addForm) window._addForm = { name:'', type:'chicken', category:'marinade', emoji:'🍳', recipe:'', serve:'', time:'20', meatGrams:'300', ingredients: [{name:'',amount:''}], kcal:'', protein:'', fat:'', carbs:'' };
   const f = window._addForm;
 
   const field = (label, key, placeholder, type) => {
@@ -1094,6 +1166,19 @@ function renderAddForm(app) {
   }, '+ ещё'));
   wrap.append(ingDiv);
 
+  // КБЖУ — необязательные
+  wrap.append(h('div', { className: 'h3', style: { marginTop: '12px' } }, 'КБЖУ (необязательно, на порцию)'));
+  const nutRow = h('div', { className: 'form-row' });
+  ['kcal', 'protein', 'fat', 'carbs'].forEach(k => {
+    const div = h('div');
+    div.append(h('div', { className: 'h3', style: { margin: '0 0 4px', fontSize: '10px' } },
+      k === 'kcal' ? 'ккал' : k === 'protein' ? 'белк' : k === 'fat' ? 'жир' : 'угл'
+    ));
+    div.append(h('input', { type: 'number', value: f[k], placeholder: '0', onInput: (e) => { f[k] = e.target.value; } }));
+    nutRow.append(div);
+  });
+  wrap.append(nutRow);
+
   const canSubmit = f.name && f.recipe;
   wrap.append(h('button', {
     className: 'btn btn-full',
@@ -1101,6 +1186,12 @@ function renderAddForm(app) {
     onClick: async () => {
       if (!canSubmit) return;
       const tgId = authUser.telegram_id;
+      const nutrition = (f.kcal || f.protein || f.fat || f.carbs) ? {
+        kcal:    parseFloat(f.kcal)    || 0,
+        protein: parseFloat(f.protein) || 0,
+        fat:     parseFloat(f.fat)     || 0,
+        carbs:   parseFloat(f.carbs)   || 0,
+      } : null;
       const payload = {
         user_id: tgId,
         name: f.name,
@@ -1112,6 +1203,7 @@ function renderAddForm(app) {
         time: parseInt(f.time) || 20,
         meat: { type: f.type === 'chicken' ? 'chicken_fillet' : 'pork', grams: parseInt(f.meatGrams) || 300 },
         ingredients: f.ingredients.filter(i => i.name),
+        nutrition,
         is_default: false,
       };
       try {
