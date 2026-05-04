@@ -84,10 +84,14 @@ textarea { resize: vertical; }
 .toggle-btn { font-family: 'Nunito', sans-serif; flex: 1; padding: 6px 8px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; }
 .sync-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); background: #FFE5E5; color: #B71C1C; border: 1.5px solid #EF9A9A; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 700; z-index: 100; max-width: calc(100vw - 16px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
 .sync-banner.show { display: block; }
+.offline-banner { position: fixed; top: 0; left: 0; right: 0; background: #FFF3CD; color: #7C5E00; border-bottom: 1.5px solid #FFE082; padding: 8px 16px; font-size: 13px; font-weight: 700; z-index: 99; text-align: center; display: none; }
+.offline-banner.show { display: block; }
+body.offline { padding-top: 36px; }
 </style>
 </head>
 <body>
 
+<div class="offline-banner" id="offlineBanner">📡 Нет связи — изменения не сохранятся</div>
 <div class="sync-banner" id="syncBanner"></div>
 <div class="app" id="app"></div>
 
@@ -185,13 +189,37 @@ function showSyncError(msg) {
   syncBannerTimer = setTimeout(() => el.classList.remove('show'), 5000);
 }
 
+// ─── Офлайн-индикатор ────────────────────────────────────────────────────
+function isOnline() {
+  return typeof navigator !== 'undefined' ? navigator.onLine !== false : true;
+}
+function updateOfflineBanner() {
+  const el = document.getElementById('offlineBanner');
+  if (!el) return;
+  if (isOnline()) {
+    el.classList.remove('show');
+    document.body.classList.remove('offline');
+  } else {
+    el.classList.add('show');
+    document.body.classList.add('offline');
+  }
+}
+window.addEventListener('online',  updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+
 // Оптимистичная синхронизация: вызываем supabaseCall в фоне.
-// Если упадёт — показываем баннер и перечитываем реальное состояние из БД.
+// Если упадёт — показываем баннер. Когда есть сеть — пробуем перечитать
+// реальное состояние из БД (откат); без сети — оставляем как есть и ждём.
 async function cloudSync(supabaseCall) {
   try {
     await supabaseCall();
   } catch (e) {
     console.error('cloud sync failed', e);
+    if (!isOnline()) {
+      // Офлайн-баннер и так показан, отдельный sync error не нужен
+      updateOfflineBanner();
+      return;
+    }
     showSyncError(e.message || 'неизвестная ошибка');
     try {
       await loadFromSupabase();
@@ -787,6 +815,8 @@ function showError(m)  { renderScreen('⚠️', 'Ошибка авторизац
 
 // ═══ INIT ═══════════════════════════════════
 async function initApp() {
+  updateOfflineBanner();
+
   const tg = window.Telegram?.WebApp;
 
   // Не в Telegram — показываем заглушку
