@@ -61,23 +61,23 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .bg-deco .c2 { width: 280px; height: 280px; bottom: -80px; left: -100px; background: #2A2730; opacity: 0.35; filter: blur(50px); }
 .bg-deco .c3 { width: 200px; height: 200px; top: 45%; left: 40%; background: #F4DCDA; opacity: 0.18; filter: blur(40px); }
 .header { text-align: center; padding: 16px 0 4px; }
-.header h1 { font-size: 26px; font-weight: 800; margin: 6px 0; letter-spacing: -0.5px; }
+.header h1 { font-size: 26px; font-weight: 300; margin: 6px 0; letter-spacing: -0.5px; }
 .header p { font-size: 12px; color: var(--text-secondary); font-weight: 300; }
 .tabs { display: flex; position: sticky; top: 0; z-index: 20; background: var(--bg-page); border-bottom: 2px solid var(--border-dashed); padding-top: 8px; }
 .tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 300; color: rgba(244, 229, 232, 0.6); border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Gilroy', sans-serif; }
-.tab.active { font-weight: 800; color: var(--hero-bg); border-bottom-color: var(--hero-bg); }
+.tab.active { font-weight: 300; color: var(--hero-bg); border-bottom-color: var(--hero-bg); }
 .tab-content { display: none; padding-top: 12px; }
 .tab-content.active { display: block; }
 .info-bar { background: var(--bg-card-white); border-radius: var(--radius-block); padding: 14px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-card-white); }
 .hero-card { background: var(--hero-bg); color: var(--hero-text); border-radius: var(--radius-card-main); padding: 24px 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-card-main); position: relative; overflow: hidden; }
-.hero-card .label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.55; margin-bottom: 6px; }
-.hero-card .number { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.hero-card .label { font-size: 11px; font-weight: 300; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.55; margin-bottom: 6px; }
+.hero-card .number { font-size: 44px; font-weight: 300; line-height: 1; letter-spacing: -1px; }
 .hero-card .number .total { opacity: 0.45; font-size: 28px; }
 .hero-card .sub { margin-top: 8px; font-size: 13px; font-weight: 300; opacity: 0.7; }
 .hero-card .accent-blob { position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(201, 82, 107, 0.18); pointer-events: none; }
-.info-bar .main { font-weight: 800; color: var(--bg-accent); }
+.info-bar .main { font-weight: 300; color: var(--bg-accent); }
 .muted { font-size: 12px; color: var(--text-secondary); }
-.h3 { font-size: 11px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin: 16px 0 8px; }
+.h3 { font-size: 11px; font-weight: 300; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin: 16px 0 8px; }
 .card { border: none; border-radius: var(--radius-card); overflow: hidden; margin-bottom: 16px; background: var(--bg-card-white); box-shadow: var(--shadow-card-white); }
 .card.dimmed { opacity: 0.45; }
 .card-head { padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
@@ -86,18 +86,18 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .card-body { flex: 1; cursor: pointer; }
 .card-title { display: flex; align-items: center; gap: 6px; }
 .card-title .emoji { font-size: 20px; }
-.card-title .name { font-weight: 800; font-size: 14px; }
+.card-title .name { font-weight: 300; font-size: 14px; }
 .card-meta { display: flex; gap: 6px; margin-top: 3px; flex-wrap: wrap; align-items: center; }
-.badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: var(--radius-tag); white-space: nowrap; }
+.badge { display: inline-block; font-size: 11px; font-weight: 300; padding: 3px 10px; border-radius: var(--radius-tag); white-space: nowrap; }
 .arrow { font-size: 18px; color: var(--text-tertiary); cursor: pointer; padding: 0 4px; transition: transform .2s; }
 .arrow.open { transform: rotate(180deg); }
 .recipe-detail { padding: 0 14px 14px; font-size: 13px; line-height: 1.7; border-top: 1px dashed var(--border-dashed); display: none; }
 .recipe-detail.open { display: block; }
-.recipe-detail .label { font-weight: 800; margin-bottom: 2px; }
+.recipe-detail .label { font-weight: 300; margin-bottom: 2px; }
 .recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted var(--border-dashed); }
-.recipe-detail .ing-row span:last-child { font-weight: 800; white-space: nowrap; }
-.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--hero-bg); color: var(--hero-text); cursor: pointer; box-shadow: var(--shadow-button); }
-.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--graphite); color: #fff; cursor: pointer; box-shadow: var(--shadow-button); }
+.recipe-detail .ing-row span:last-child { font-weight: 300; white-space: nowrap; }
+.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 300; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--hero-bg); color: var(--hero-text); cursor: pointer; box-shadow: var(--shadow-button); }
+.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 300; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--graphite); color: #fff; cursor: pointer; box-shadow: var(--shadow-button); }
 .btn-delete { font-size: 11px; padding: 6px 14px; background: var(--bg-card-white); color: var(--text-tag-dark); border: 1.5px solid var(--text-tag-dark); box-shadow: none; }
 .btn-full { width: 100%; }
 .btn-group { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
@@ -116,16 +116,16 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .editor { background: var(--bg-card-soft); border: none; border-radius: 0 0 var(--radius-block) var(--radius-block); padding: 14px 16px; margin-bottom: 6px; box-shadow: var(--shadow-card-white); }
 .chip-group { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
 .chip { font-family: 'Gilroy'; font-size: 11px; font-weight: 300; padding: 6px 12px; border-radius: var(--radius-pill); border: 1.5px solid var(--border-dashed); background: var(--bg-card-white); cursor: pointer; color: var(--text-primary); }
-.chip.selected { font-weight: 800; }
+.chip.selected { font-weight: 300; }
 .meat-row { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dashed); }
 .meat-row:last-child { border-bottom: none; }
-.meat-total { padding: 8px 14px; background: var(--bg-tag); font-size: 13px; font-weight: 800; color: var(--bg-accent); text-align: right; }
+.meat-total { padding: 8px 14px; background: var(--bg-tag); font-size: 13px; font-weight: 300; color: var(--bg-accent); text-align: right; }
 .extra-row { padding: 8px 14px; border-bottom: 1px solid var(--border-dashed); }
 .extra-row:last-child { border-bottom: none; }
 .extra-head { display: flex; justify-content: space-between; align-items: baseline; }
-.extra-head .amount { font-weight: 800; white-space: nowrap; margin-left: 8px; }
+.extra-head .amount { font-weight: 300; white-space: nowrap; margin-left: 8px; }
 .spice-box { padding: 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
-.summary { background: var(--bg-card-white); border-radius: var(--radius-block); padding: 16px; text-align: center; font-weight: 800; color: var(--bg-accent); box-shadow: var(--shadow-card-white); }
+.summary { background: var(--bg-card-white); border-radius: var(--radius-block); padding: 16px; text-align: center; font-weight: 300; color: var(--bg-accent); box-shadow: var(--shadow-card-white); }
 input, textarea { font-family: 'Gilroy', sans-serif; font-size: 13px; padding: 10px 14px; border: 1.5px solid var(--border-dashed); border-radius: var(--radius-row); width: 100%; outline: none; background: var(--bg-card-white); color: var(--text-primary); }
 textarea { resize: vertical; }
 .form-group { margin-bottom: 10px; }
@@ -136,10 +136,10 @@ textarea { resize: vertical; }
 .ing-form-row input:first-child { flex: 2; }
 .ing-form-row input:last-child { flex: 1; }
 .toggle-group { display: flex; gap: 4px; }
-.toggle-btn { font-family: 'Gilroy', sans-serif; flex: 1; padding: 8px 12px; border: none; border-radius: var(--radius-pill); cursor: pointer; font-weight: 800; font-size: 12px; }
-.sync-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); background: #FFE5E5; color: #B71C1C; border: 1.5px solid #EF9A9A; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 800; z-index: 100; max-width: calc(100vw - 16px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+.toggle-btn { font-family: 'Gilroy', sans-serif; flex: 1; padding: 8px 12px; border: none; border-radius: var(--radius-pill); cursor: pointer; font-weight: 300; font-size: 12px; }
+.sync-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); background: #FFE5E5; color: #B71C1C; border: 1.5px solid #EF9A9A; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 300; z-index: 100; max-width: calc(100vw - 16px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
 .sync-banner.show { display: block; }
-.offline-banner { position: fixed; top: 0; left: 0; right: 0; background: #FFF3CD; color: #7C5E00; border-bottom: 1.5px solid #FFE082; padding: 8px 16px; font-size: 13px; font-weight: 800; z-index: 99; text-align: center; display: none; }
+.offline-banner { position: fixed; top: 0; left: 0; right: 0; background: #FFF3CD; color: #7C5E00; border-bottom: 1.5px solid #FFE082; padding: 8px 16px; font-size: 13px; font-weight: 300; z-index: 99; text-align: center; display: none; }
 .offline-banner.show { display: block; }
 body.offline { padding-top: 36px; }
 </style>
@@ -530,8 +530,8 @@ function renderShopping(app, activeRecipes) {
     totalMeat += grams;
     const mt = MEAT_TYPES[type] || { emoji: '🍖', label: type };
     meatCard.append(h('div', { className: 'meat-row' },
-      h('div', null, h('span', { style: { fontSize: '16px', marginRight: '6px' } }, mt.emoji), h('span', { style: { fontWeight: 800 } }, mt.label)),
-      h('span', { style: { fontWeight: 800, fontSize: '15px', color: 'var(--bg-accent)' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
+      h('div', null, h('span', { style: { fontSize: '16px', marginRight: '6px' } }, mt.emoji), h('span', { style: { fontWeight: 300 } }, mt.label)),
+      h('span', { style: { fontWeight: 300, fontSize: '15px', color: 'var(--bg-accent)' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
     ));
   });
   meatCard.append(h('div', { className: 'meat-total' }, `Всего мяса: ${(totalMeat/1000).toFixed(1)} кг`));
@@ -542,7 +542,7 @@ function renderShopping(app, activeRecipes) {
   Object.entries(extras).forEach(([name, entries]) => {
     extCard.append(h('div', { className: 'extra-row' },
       h('div', { className: 'extra-head' },
-        h('span', { style: { fontWeight: 800 } }, name),
+        h('span', { style: { fontWeight: 300 } }, name),
         h('span', { className: 'amount' }, entries.length === 1 ? entries[0].amount : entries.map(e => e.amount).join(' + '))
       ),
       h('div', { className: 'muted' }, entries.map(e => e.from).join(' · '))
@@ -631,13 +631,13 @@ function renderPlanner(app, activeRecipes) {
         const content = h('div', { className: 'day-content' });
         const titleRow = h('div', { style: { display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' } },
           h('span', null, recipe.emoji),
-          h('span', { style: { fontWeight: 800 } }, recipe.name)
+          h('span', { style: { fontWeight: 300 } }, recipe.name)
         );
         if (d.side) titleRow.append(h('span', { className: 'badge', style: { background: 'var(--bg-tag)', color: 'var(--bg-accent)', fontSize: '10px' } }, d.side));
         content.append(titleRow);
         content.append(h('div', { className: 'muted', style: { marginTop: '2px' } },
           h('span', null, recipe.serve.split('.')[0] + ' · '),
-          h('span', { style: { fontWeight: 800, color: 'var(--bg-accent)' } }, `⏱ ${recipe.time} мин`)
+          h('span', { style: { fontWeight: 300, color: 'var(--bg-accent)' } }, `⏱ ${recipe.time} мин`)
         ));
         row.append(content);
         row.append(h('button', { className: 'day-clear', onClick: (e) => {
@@ -742,7 +742,7 @@ function renderPlanner(app, activeRecipes) {
 // ═══ ADD RECIPE TAB ═══
 function renderAddForm(app) {
   const wrap = h('div', { className: 'tab-content active' });
-  wrap.append(h('h2', { style: { fontSize: '16px', fontWeight: 800, margin: '8px 0' } }, 'Добавить рецепт'));
+  wrap.append(h('h2', { style: { fontSize: '16px', fontWeight: 300, margin: '8px 0' } }, 'Добавить рецепт'));
   wrap.append(h('p', { className: 'muted' }, 'Новая заготовка сразу появится в рецептах и в закупках'));
 
   if (!window._addForm) window._addForm = { name:'', type:'chicken', category:'marinade', emoji:'🍳', recipe:'', serve:'', time:'20', meatGrams:'300', ingredients: [{name:'',amount:''}] };
@@ -872,7 +872,7 @@ function renderScreen(emoji, title, text) {
   app.innerHTML = '';
   app.append(h('div', { style: { textAlign: 'center', padding: '60px 20px', maxWidth: '400px', margin: '0 auto' } },
     h('div', { style: { fontSize: '48px', marginBottom: '12px' } }, emoji),
-    h('h2', { style: { fontSize: '20px', fontWeight: '800', marginBottom: '12px' } }, title),
+    h('h2', { style: { fontSize: '20px', fontWeight: '300', marginBottom: '12px' } }, title),
     h('p', { style: { color: 'var(--text-secondary)', lineHeight: '1.5' } }, text)
   ));
 }
