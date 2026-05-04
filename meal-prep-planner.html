@@ -66,6 +66,12 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .tab-content { display: none; padding-top: 12px; }
 .tab-content.active { display: block; }
 .info-bar { background: var(--bg-card-white); border-radius: var(--radius-block); padding: 14px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-card-white); }
+.hero-card { background: var(--bg-accent); color: #fff; border-radius: var(--radius-card-main); padding: 24px 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-card-main); position: relative; overflow: hidden; }
+.hero-card .label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.75; margin-bottom: 6px; }
+.hero-card .number { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.hero-card .number .total { opacity: 0.55; font-size: 28px; }
+.hero-card .sub { margin-top: 8px; font-size: 13px; font-weight: 300; opacity: 0.9; }
+.hero-card .accent-blob { position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none; }
 .info-bar .main { font-weight: 800; color: var(--bg-accent); }
 .muted { font-size: 12px; color: var(--text-secondary); }
 .h3 { font-size: 11px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin: 16px 0 8px; }
@@ -372,11 +378,16 @@ function render() {
 function renderRecipes(app, activeRecipes) {
   const wrap = h('div', { className: 'tab-content active' });
 
-  wrap.append(h('div', { className: 'info-bar' },
-    h('span', { className: 'main' }, `Включено: ${state.activeIds.size} из ${state.recipes.length}`),
-    h('span', { className: 'muted' }, `= ${state.activeIds.size} ужинов на двоих`)
+  wrap.append(h('div', { className: 'hero-card' },
+    h('div', { className: 'accent-blob' }),
+    h('div', { className: 'label' }, 'Включено заготовок'),
+    h('div', { className: 'number' },
+      `${state.activeIds.size}`,
+      h('span', { className: 'total' }, ` / ${state.recipes.length}`)
+    ),
+    h('div', { className: 'sub' }, `≈ ${state.activeIds.size} ужинов на двоих`)
   ));
-  wrap.append(h('p', { className: 'muted', style: { marginBottom: '8px' } }, 'Галочка — включить/выключить. Нажми на карточку — рецепт.'));
+  wrap.append(h('p', { className: 'muted', style: { marginBottom: '12px', fontSize: '12px' } }, 'Галочка — включить/выключить. Нажми на карточку — рецепт.'));
 
   ['chicken', 'pork'].forEach(type => {
     wrap.append(h('div', { className: 'h3' }, type === 'chicken' ? '🍗 Курица' : '🥩 Свинина'));
@@ -487,9 +498,13 @@ function renderRecipeCard(r) {
 function renderShopping(app, activeRecipes) {
   const wrap = h('div', { className: 'tab-content active' });
 
-  wrap.append(h('div', { style: { background: 'var(--bg-tag)', borderRadius: '12px', padding: '14px', marginBottom: '12px', textAlign: 'center' } },
-    h('div', { style: { fontWeight: 800, color: 'var(--bg-accent)', fontSize: '15px' } }, `Список на ${state.activeIds.size} заготовок`),
-    h('div', { className: 'muted' }, 'Каждая заготовка делается 1 раз · порция на двоих')
+  wrap.append(h('div', { className: 'hero-card' },
+    h('div', { className: 'accent-blob' }),
+    h('div', { className: 'label' }, 'Список покупок'),
+    h('div', { className: 'number' }, `${state.activeIds.size}`,
+      h('span', { className: 'total' }, ' заготовок')
+    ),
+    h('div', { className: 'sub' }, 'Каждая делается 1 раз · порция на двоих')
   ));
 
   if (state.activeIds.size === 0) {
