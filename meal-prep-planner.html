@@ -481,7 +481,7 @@ function render() {
   ));
 
   // Tabs
-  const tabNames = ['📋 Рецепты', '🛒 Закупки', '🗓 План', '➕ Добавить'];
+  const tabNames = ['📅 Сегодня', '📋 Рецепты', '🛒 Закупки', '🗓 План', '➕'];
   const tabs = h('div', { className: 'tabs' });
   tabNames.forEach((name, i) => {
     tabs.append(h('button', {
@@ -492,10 +492,126 @@ function render() {
   app.append(tabs);
 
   // Tab content
-  if (state.tab === 0) renderRecipes(app, activeRecipes);
-  else if (state.tab === 1) renderShopping(app, activeRecipes);
-  else if (state.tab === 2) renderPlanner(app, activeRecipes);
-  else if (state.tab === 3) renderAddForm(app);
+  if      (state.tab === 0) renderToday(app, activeRecipes);
+  else if (state.tab === 1) renderRecipes(app, activeRecipes);
+  else if (state.tab === 2) renderShopping(app, activeRecipes);
+  else if (state.tab === 3) renderPlanner(app, activeRecipes);
+  else if (state.tab === 4) renderAddForm(app);
+}
+
+// ═══ TODAY TAB ═══
+function getTodayDayIndex() {
+  if (!state.weekStart) return null;
+  const ws = new Date(state.weekStart + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.round((today - ws) / 86400000);
+  return (diff >= 0 && diff < 14) ? diff : null;
+}
+
+const RU_WEEKDAYS = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+const RU_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+
+function renderToday(app, activeRecipes) {
+  const wrap = h('div', { className: 'tab-content active' });
+  const todayIdx = getTodayDayIndex();
+  const now = new Date();
+  const dateStr = `${now.getDate()} ${RU_MONTHS[now.getMonth()]}`;
+  const dayName = RU_WEEKDAYS[now.getDay()];
+
+  // Карточка-герой с датой
+  wrap.append(h('div', { className: 'hero-card' },
+    h('div', { className: 'accent-blob' }),
+    h('div', { className: 'label' }, dayName),
+    h('div', { className: 'number' }, dateStr),
+    h('div', { className: 'sub' }, todayIdx === null ? 'План этой недели не задан' : `День ${todayIdx + 1} из 14`)
+  ));
+
+  // Если вне 14-дневного цикла — ничего больше не показываем
+  if (todayIdx === null) {
+    wrap.append(h('div', { style: { textAlign: 'center', padding: '20px 0', color: 'var(--text-secondary)' } }, 'Открой вкладку «План», чтобы запланировать неделю'));
+    wrap.append(h('div', { style: { textAlign: 'center', marginTop: '8px' } },
+      h('button', { className: 'btn', onClick: () => { state.tab = 3; render(); } }, 'К плану →')
+    ));
+    app.append(wrap);
+    return;
+  }
+
+  const day = state.plan[todayIdx];
+  const recipe = day.recipeId ? state.recipes.find(r => r.id === day.recipeId) : null;
+
+  if (!recipe) {
+    // Сегодня нет плана
+    wrap.append(h('div', { className: 'card', style: { padding: '24px', textAlign: 'center' } },
+      h('div', { style: { fontSize: '32px', marginBottom: '8px' } }, '🍽'),
+      h('div', { style: { marginBottom: '4px' } }, 'На сегодня ничего не запланировано'),
+      h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Запланируй ужин, чтобы увидеть его здесь'),
+      h('button', { className: 'btn', onClick: () => { state.tab = 3; render(); } }, 'Запланировать неделю')
+    ));
+    // Что на завтра — для контекста
+    if (todayIdx + 1 < 14) {
+      const tom = state.plan[todayIdx + 1];
+      const tomR = tom.recipeId ? state.recipes.find(r => r.id === tom.recipeId) : null;
+      if (tomR) {
+        wrap.append(h('p', { className: 'muted', style: { marginTop: '14px', textAlign: 'center', fontSize: '12px' } },
+          `Завтра: ${tomR.emoji} ${tomR.name}${tom.side ? ' · ' + tom.side : ''}`
+        ));
+      }
+    }
+    app.append(wrap);
+    return;
+  }
+
+  // Карточка ужина
+  const dishCard = h('div', { className: 'card', style: { padding: '20px' } });
+  dishCard.append(h('div', { className: 'h3', style: { margin: '0 0 6px' } }, 'Сегодняшний ужин'));
+  dishCard.append(h('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' } },
+    h('span', { style: { fontSize: '28px' } }, recipe.emoji),
+    h('span', { style: { fontSize: '20px' } }, recipe.name)
+  ));
+  if (day.side) {
+    dishCard.append(h('div', { className: 'muted', style: { marginBottom: '10px' } }, `Гарнир: ${day.side}`));
+  }
+  dishCard.append(h('div', { style: { fontSize: '13px', marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed var(--border-dashed)' } },
+    h('div', { className: 'h3', style: { margin: '0 0 4px' } }, 'Как готовить'),
+    h('div', null, recipe.serve)
+  ));
+  wrap.append(dishCard);
+
+  // Статус + кнопка-действие
+  const status = day.status;
+  const statusCard = h('div', { className: 'card', style: { padding: '20px', textAlign: 'center' } });
+  if (!status) {
+    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '📦'));
+    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Заготовка ещё не сделана'));
+    statusCard.append(h('button', { className: 'btn', onClick: () => advanceDayStatus(todayIdx) }, 'Заготовил'));
+  } else if (status === 'prepped') {
+    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '🧊'));
+    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'В морозилке'));
+    statusCard.append(h('button', { className: 'btn', onClick: () => advanceDayStatus(todayIdx) }, '💧 Достать из морозилки'));
+  } else if (status === 'thawing') {
+    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '💧'));
+    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Размораживается'));
+    statusCard.append(h('button', { className: 'btn', onClick: () => advanceDayStatus(todayIdx) }, '🍳 Приготовлено / Съедено'));
+  } else if (status === 'done') {
+    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '✓'));
+    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Съедено сегодня'));
+    statusCard.append(h('button', { className: 'btn-outline', onClick: () => advanceDayStatus(todayIdx) }, 'Сбросить'));
+  }
+  wrap.append(statusCard);
+
+  // Что на завтра
+  if (todayIdx + 1 < 14) {
+    const tom = state.plan[todayIdx + 1];
+    const tomR = tom.recipeId ? state.recipes.find(r => r.id === tom.recipeId) : null;
+    if (tomR) {
+      wrap.append(h('p', { className: 'muted', style: { marginTop: '14px', textAlign: 'center', fontSize: '12px' } },
+        `Завтра: ${tomR.emoji} ${tomR.name}${tom.side ? ' · ' + tom.side : ''}`
+      ));
+    }
+  }
+
+  app.append(wrap);
 }
 
 // ═══ RECIPES TAB ═══
@@ -1084,6 +1200,8 @@ async function initApp() {
 
     // Этап 4.1 — читаем рецепты, активные и план из Supabase
     await loadFromSupabase();
+    // Контекстный стартовый таб: воскресенье → План, иначе → Сегодня
+    state.tab = (new Date().getDay() === 0) ? 3 : 0;
     render();
   } catch (e) {
     console.error('init error', e);
