@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#F4DCDA">
+<meta name="theme-color" content="#B0455C">
 <title>Meal Prep Planner 🧊</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -24,62 +24,65 @@
   font-display: swap;
 }
 :root {
-  --bg-page: #F4DCDA;
-  --bg-card-soft: #FCF4F6;
-  --bg-card-white: #FFFFFF;
+  --bg-page: #B0455C;
+  --bg-card-soft: #353042;
+  --bg-card-white: #2A2730;
   --bg-accent: #C9526B;
-  --bg-tag: #FBE9ED;
-  --text-primary: #2A2730;
-  --text-secondary: #8A7A82;
-  --text-tertiary: #B19BA3;
-  --text-muted: #D9B5BF;
-  --text-tag: #B14661;
-  --text-tag-dark: #8A2747;
-  --border-dashed: #EFD0D8;
+  --bg-tag: #3A3540;
+  --text-primary: #F4E5E8;
+  --text-secondary: #C8A8B0;
+  --text-tertiary: #9A7E86;
+  --text-muted: #735C68;
+  --text-tag: #FBC9D2;
+  --text-tag-dark: #FFD1D9;
+  --border-dashed: #4A4250;
   --graphite: #2A2730;
   --graphite-soft: #4A4250;
+  --hero-bg: #F4DCDA;
+  --hero-text: #2A2730;
+  --on-page-text: #F4E5E8;
   --radius-card-main: 32px;
   --radius-card: 24px;
   --radius-block: 18px;
   --radius-row: 16px;
   --radius-tag: 12px;
   --radius-pill: 999px;
-  --shadow-card-main: 0 20px 50px -15px rgba(155, 50, 80, 0.4);
-  --shadow-card-white: 0 20px 50px -15px rgba(155, 50, 80, 0.25);
-  --shadow-button: 0 8px 20px -6px rgba(61, 42, 51, 0.5);
-  --shadow-active-day: 0 6px 16px -6px rgba(201, 82, 107, 0.5);
+  --shadow-card-main: 0 20px 50px -15px rgba(0, 0, 0, 0.4);
+  --shadow-card-white: 0 14px 30px -12px rgba(0, 0, 0, 0.35);
+  --shadow-button: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
+  --shadow-active-day: 0 6px 16px -6px rgba(0, 0, 0, 0.5);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; background: var(--bg-page); color: var(--text-primary); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 .app { max-width: 600px; margin: 0 auto; padding: 0 8px 80px; position: relative; z-index: 1; }
 .bg-deco { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 .bg-deco .circle { position: absolute; border-radius: 50%; filter: blur(2px); }
-.bg-deco .c1 { width: 320px; height: 320px; top: -80px;  right: -100px; background: #EFC0C9; opacity: 0.55; }
-.bg-deco .c2 { width: 240px; height: 240px; bottom: -60px; left: -80px; background: #E8C7B5; opacity: 0.45; }
-.bg-deco .c3 { width: 180px; height: 180px; top: 45%; left: 40%; background: #D9C2C5; opacity: 0.45; }
+.bg-deco .c1 { width: 360px; height: 360px; top: -120px; right: -120px; background: #C9526B; opacity: 0.6; filter: blur(40px); }
+.bg-deco .c2 { width: 280px; height: 280px; bottom: -80px; left: -100px; background: #2A2730; opacity: 0.35; filter: blur(50px); }
+.bg-deco .c3 { width: 200px; height: 200px; top: 45%; left: 40%; background: #F4DCDA; opacity: 0.18; filter: blur(40px); }
 .header { text-align: center; padding: 16px 0 4px; }
 .header h1 { font-size: 26px; font-weight: 800; margin: 6px 0; letter-spacing: -0.5px; }
 .header p { font-size: 12px; color: var(--text-secondary); font-weight: 300; }
 .tabs { display: flex; position: sticky; top: 0; z-index: 20; background: var(--bg-page); border-bottom: 2px solid var(--border-dashed); padding-top: 8px; }
-.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 300; color: var(--text-secondary); border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Gilroy', sans-serif; }
-.tab.active { font-weight: 800; color: var(--bg-accent); border-bottom-color: var(--bg-accent); }
+.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 300; color: rgba(244, 229, 232, 0.6); border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Gilroy', sans-serif; }
+.tab.active { font-weight: 800; color: var(--hero-bg); border-bottom-color: var(--hero-bg); }
 .tab-content { display: none; padding-top: 12px; }
 .tab-content.active { display: block; }
 .info-bar { background: var(--bg-card-white); border-radius: var(--radius-block); padding: 14px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-card-white); }
-.hero-card { background: var(--bg-accent); color: #fff; border-radius: var(--radius-card-main); padding: 24px 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-card-main); position: relative; overflow: hidden; }
-.hero-card .label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.75; margin-bottom: 6px; }
+.hero-card { background: var(--hero-bg); color: var(--hero-text); border-radius: var(--radius-card-main); padding: 24px 24px 22px; margin-bottom: 18px; box-shadow: var(--shadow-card-main); position: relative; overflow: hidden; }
+.hero-card .label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.55; margin-bottom: 6px; }
 .hero-card .number { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
-.hero-card .number .total { opacity: 0.55; font-size: 28px; }
-.hero-card .sub { margin-top: 8px; font-size: 13px; font-weight: 300; opacity: 0.9; }
-.hero-card .accent-blob { position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none; }
+.hero-card .number .total { opacity: 0.45; font-size: 28px; }
+.hero-card .sub { margin-top: 8px; font-size: 13px; font-weight: 300; opacity: 0.7; }
+.hero-card .accent-blob { position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(201, 82, 107, 0.18); pointer-events: none; }
 .info-bar .main { font-weight: 800; color: var(--bg-accent); }
 .muted { font-size: 12px; color: var(--text-secondary); }
 .h3 { font-size: 11px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin: 16px 0 8px; }
 .card { border: none; border-radius: var(--radius-card); overflow: hidden; margin-bottom: 16px; background: var(--bg-card-white); box-shadow: var(--shadow-card-white); }
 .card.dimmed { opacity: 0.45; }
 .card-head { padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
-.checkbox { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border-dashed); background: var(--bg-card-white); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
-.checkbox.checked { background: var(--bg-accent); border-color: var(--bg-accent); }
+.checkbox { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--graphite-soft); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--hero-text); flex-shrink: 0; }
+.checkbox.checked { background: var(--hero-bg); border-color: var(--hero-bg); color: var(--hero-text); }
 .card-body { flex: 1; cursor: pointer; }
 .card-title { display: flex; align-items: center; gap: 6px; }
 .card-title .emoji { font-size: 20px; }
@@ -93,19 +96,19 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .recipe-detail .label { font-weight: 800; margin-bottom: 2px; }
 .recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted var(--border-dashed); }
 .recipe-detail .ing-row span:last-child { font-weight: 800; white-space: nowrap; }
-.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--bg-accent); color: #fff; cursor: pointer; box-shadow: var(--shadow-button); }
+.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--hero-bg); color: var(--hero-text); cursor: pointer; box-shadow: var(--shadow-button); }
 .btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--graphite); color: #fff; cursor: pointer; box-shadow: var(--shadow-button); }
 .btn-delete { font-size: 11px; padding: 6px 14px; background: var(--bg-card-white); color: var(--text-tag-dark); border: 1.5px solid var(--text-tag-dark); box-shadow: none; }
 .btn-full { width: 100%; }
 .btn-group { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
 .progress { display: flex; gap: 2px; margin-bottom: 14px; }
-.progress-dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border-dashed); transition: background .2s; }
-.progress-dot.filled { background: var(--bg-accent); }
+.progress-dot { flex: 1; height: 6px; border-radius: 3px; background: rgba(244, 229, 232, 0.18); transition: background .2s; }
+.progress-dot.filled { background: var(--hero-bg); }
 .day-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: var(--radius-block); border: none; background: var(--bg-card-white); cursor: pointer; margin-bottom: 10px; box-shadow: var(--shadow-card-white); }
 .day-row.filled { background: var(--bg-card-white); }
-.day-row.editing { background: var(--bg-accent); color: #fff; border-radius: var(--radius-block) var(--radius-block) 0 0; margin-bottom: 0; box-shadow: var(--shadow-active-day); }
-.day-row.editing .day-label { color: rgba(255,255,255,0.85); }
-.day-row.editing .day-empty { color: rgba(255,255,255,0.85); }
+.day-row.editing { background: var(--hero-bg); color: var(--hero-text); border-radius: var(--radius-block) var(--radius-block) 0 0; margin-bottom: 0; box-shadow: var(--shadow-active-day); }
+.day-row.editing .day-label { color: var(--hero-text); opacity: 0.6; }
+.day-row.editing .day-empty { color: var(--hero-text); opacity: 0.7; }
 .day-label { font-weight: 300; color: var(--text-secondary); min-width: 24px; font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; }
 .day-empty { flex: 1; color: var(--text-tertiary); font-style: italic; font-size: 13px; }
 .day-content { flex: 1; min-width: 0; }
