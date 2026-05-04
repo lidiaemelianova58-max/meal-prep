@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#F4D3D9">
+<meta name="theme-color" content="#F4DCDA">
 <title>Meal Prep Planner 🧊</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -24,7 +24,7 @@
   font-display: swap;
 }
 :root {
-  --bg-page: #F4D3D9;
+  --bg-page: #F4DCDA;
   --bg-card-soft: #FCF4F6;
   --bg-card-white: #FFFFFF;
   --bg-accent: #C9526B;
@@ -52,9 +52,9 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .app { max-width: 600px; margin: 0 auto; padding: 0 8px 80px; position: relative; z-index: 1; }
 .bg-deco { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 .bg-deco .circle { position: absolute; border-radius: 50%; filter: blur(2px); }
-.bg-deco .c1 { width: 320px; height: 320px; top: -80px;  right: -100px; background: #EFC0C9; opacity: 0.7; }
-.bg-deco .c2 { width: 240px; height: 240px; bottom: -60px; left: -80px; background: #E8B0BB; opacity: 0.5; }
-.bg-deco .c3 { width: 180px; height: 180px; top: 45%; left: 40%; background: #F8DEE3; opacity: 0.6; }
+.bg-deco .c1 { width: 320px; height: 320px; top: -80px;  right: -100px; background: #EFC0C9; opacity: 0.55; }
+.bg-deco .c2 { width: 240px; height: 240px; bottom: -60px; left: -80px; background: #E8C7B5; opacity: 0.45; }
+.bg-deco .c3 { width: 180px; height: 180px; top: 45%; left: 40%; background: #D9C2C5; opacity: 0.45; }
 .header { text-align: center; padding: 16px 0 4px; }
 .header h1 { font-size: 26px; font-weight: 800; margin: 6px 0; letter-spacing: -0.5px; }
 .header p { font-size: 12px; color: var(--text-secondary); font-weight: 300; }
@@ -67,7 +67,7 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .info-bar .main { font-weight: 800; color: var(--bg-accent); }
 .muted { font-size: 12px; color: var(--text-secondary); }
 .h3 { font-size: 11px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin: 16px 0 8px; }
-.card { border: none; border-radius: var(--radius-card); overflow: hidden; margin-bottom: 12px; background: var(--bg-card-white); box-shadow: var(--shadow-card-white); }
+.card { border: none; border-radius: var(--radius-card); overflow: hidden; margin-bottom: 16px; background: var(--bg-card-white); box-shadow: var(--shadow-card-white); }
 .card.dimmed { opacity: 0.45; }
 .card-head { padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
 .checkbox { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border-dashed); background: var(--bg-card-white); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
@@ -93,7 +93,7 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .progress { display: flex; gap: 2px; margin-bottom: 14px; }
 .progress-dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border-dashed); transition: background .2s; }
 .progress-dot.filled { background: var(--bg-accent); }
-.day-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: var(--radius-block); border: none; background: var(--bg-card-white); cursor: pointer; margin-bottom: 6px; box-shadow: var(--shadow-card-white); }
+.day-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: var(--radius-block); border: none; background: var(--bg-card-white); cursor: pointer; margin-bottom: 10px; box-shadow: var(--shadow-card-white); }
 .day-row.filled { background: var(--bg-card-white); }
 .day-row.editing { background: var(--bg-accent); color: #fff; border-radius: var(--radius-block) var(--radius-block) 0 0; margin-bottom: 0; box-shadow: var(--shadow-active-day); }
 .day-row.editing .day-label { color: rgba(255,255,255,0.85); }
