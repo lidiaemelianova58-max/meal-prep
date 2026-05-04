@@ -192,6 +192,8 @@ const CONFIG = {
 let supabase = null;
 let authJwt = null;
 let authUser = null;
+let tgApp = null;
+let mainBtnHandler = null;
 
 // ═══════════════════ DATA ═══════════════════
 const MEAT_TYPES = {
@@ -291,6 +293,58 @@ function updateOfflineBanner() {
 }
 window.addEventListener('online',  updateOfflineBanner);
 window.addEventListener('offline', updateOfflineBanner);
+
+// ─── Telegram MainButton ──────────────────────────────────────────────────
+function setMainButton(text, onClick) {
+  if (!tgApp || !tgApp.MainButton) return;
+  if (mainBtnHandler) tgApp.MainButton.offClick(mainBtnHandler);
+  mainBtnHandler = onClick;
+  tgApp.MainButton.setParams({
+    text,
+    color: '#F4DCDA',
+    text_color: '#2A2730',
+  });
+  tgApp.MainButton.onClick(mainBtnHandler);
+  tgApp.MainButton.show();
+}
+function hideMainButton() {
+  if (!tgApp || !tgApp.MainButton) return;
+  if (mainBtnHandler) tgApp.MainButton.offClick(mainBtnHandler);
+  mainBtnHandler = null;
+  tgApp.MainButton.hide();
+}
+function refreshMainButton() {
+  // Вызывается после render() — определяет, что должна показывать MainButton
+  if (!tgApp) return;
+  const tab = state.tab;
+  if (tab === 0) {
+    // Сегодня — главное действие зависит от статуса
+    const todayIdx = getTodayDayIndex();
+    if (todayIdx === null) {
+      setMainButton('К плану →', () => { state.tab = 3; render(); });
+      return;
+    }
+    const day = state.plan[todayIdx];
+    const recipe = day.recipeId ? state.recipes.find(r => r.id === day.recipeId) : null;
+    if (!recipe) {
+      setMainButton('Запланировать неделю', () => { state.tab = 3; render(); });
+      return;
+    }
+    const status = day.status;
+    if (!status)              setMainButton('Заготовил',                () => advanceDayStatus(todayIdx));
+    else if (status === 'prepped') setMainButton('Достать из морозилки',  () => advanceDayStatus(todayIdx));
+    else if (status === 'thawing') setMainButton('Приготовлено · Съедено', () => advanceDayStatus(todayIdx));
+    else if (status === 'done')    setMainButton('Сбросить статус',        () => advanceDayStatus(todayIdx));
+  } else if (tab === 4) {
+    // Форма добавления — кнопка «Добавить»
+    const f = window._addForm;
+    const canSubmit = f && f.name && f.recipe;
+    if (canSubmit) setMainButton('✓ Добавить рецепт', () => window._submitAddForm && window._submitAddForm());
+    else hideMainButton();
+  } else {
+    hideMainButton();
+  }
+}
 
 // ─── Статусы заготовок ────────────────────────────────────────────────────
 const STATUS = {
@@ -535,6 +589,8 @@ function render() {
   else if (state.tab === 2) renderShopping(app, activeRecipes);
   else if (state.tab === 3) renderPlanner(app, activeRecipes);
   else if (state.tab === 4) renderAddForm(app);
+
+  refreshMainButton();
 }
 
 // ═══ TODAY TAB ═══
@@ -568,9 +624,6 @@ function renderToday(app, activeRecipes) {
   // Если вне 14-дневного цикла — ничего больше не показываем
   if (todayIdx === null) {
     wrap.append(h('div', { style: { textAlign: 'center', padding: '20px 0', color: 'var(--text-secondary)' } }, 'Открой вкладку «План», чтобы запланировать неделю'));
-    wrap.append(h('div', { style: { textAlign: 'center', marginTop: '8px' } },
-      h('button', { className: 'btn', onClick: () => { state.tab = 3; render(); } }, 'К плану →')
-    ));
     app.append(wrap);
     return;
   }
@@ -583,8 +636,7 @@ function renderToday(app, activeRecipes) {
     wrap.append(h('div', { className: 'card', style: { padding: '24px', textAlign: 'center' } },
       h('div', { style: { fontSize: '32px', marginBottom: '8px' } }, '🍽'),
       h('div', { style: { marginBottom: '4px' } }, 'На сегодня ничего не запланировано'),
-      h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Запланируй ужин, чтобы увидеть его здесь'),
-      h('button', { className: 'btn', onClick: () => { state.tab = 3; render(); } }, 'Запланировать неделю')
+      h('div', { className: 'muted' }, 'Кнопка ниже отправит на «План»')
     ));
     // Что на завтра — для контекста
     if (todayIdx + 1 < 14) {
@@ -619,26 +671,15 @@ function renderToday(app, activeRecipes) {
   ));
   wrap.append(dishCard);
 
-  // Статус + кнопка-действие
+  // Статус — действия в Telegram MainButton снизу
   const status = day.status;
   const statusCard = h('div', { className: 'card', style: { padding: '20px', textAlign: 'center' } });
-  if (!status) {
-    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '📦'));
-    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Заготовка ещё не сделана'));
-    statusCard.append(h('button', { className: 'btn', onClick: () => advanceDayStatus(todayIdx) }, 'Заготовил'));
-  } else if (status === 'prepped') {
-    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '🧊'));
-    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'В морозилке'));
-    statusCard.append(h('button', { className: 'btn', onClick: () => advanceDayStatus(todayIdx) }, '💧 Достать из морозилки'));
-  } else if (status === 'thawing') {
-    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '💧'));
-    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Размораживается'));
-    statusCard.append(h('button', { className: 'btn', onClick: () => advanceDayStatus(todayIdx) }, '🍳 Приготовлено / Съедено'));
-  } else if (status === 'done') {
-    statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, '✓'));
-    statusCard.append(h('div', { className: 'muted', style: { marginBottom: '14px' } }, 'Съедено сегодня'));
-    statusCard.append(h('button', { className: 'btn-outline', onClick: () => advanceDayStatus(todayIdx) }, 'Сбросить'));
-  }
+  const statusInfo = !status      ? { icon: '📦', text: 'Заготовка ещё не сделана' }
+                  : status === 'prepped' ? { icon: '🧊', text: 'В морозилке' }
+                  : status === 'thawing' ? { icon: '💧', text: 'Размораживается' }
+                                         : { icon: '✓',  text: 'Съедено сегодня' };
+  statusCard.append(h('div', { style: { fontSize: '32px', marginBottom: '6px' } }, statusInfo.icon));
+  statusCard.append(h('div', { className: 'muted' }, statusInfo.text));
   wrap.append(statusCard);
 
   // Что на завтра
@@ -1106,7 +1147,10 @@ function renderAddForm(app) {
       value: f[key], placeholder,
       ...(type === 'number' ? { type: 'number' } : {}),
       ...(type === 'textarea' ? { rows: '3' } : {}),
-      onInput: (e) => { f[key] = e.target.value; }
+      onInput: (e) => {
+        f[key] = e.target.value;
+        if (key === 'name' || key === 'recipe') refreshMainButton();
+      }
     });
     d.append(inp);
     return d;
@@ -1180,59 +1224,58 @@ function renderAddForm(app) {
   wrap.append(nutRow);
 
   const canSubmit = f.name && f.recipe;
-  wrap.append(h('button', {
-    className: 'btn btn-full',
-    style: { marginTop: '8px', fontSize: '15px', padding: '12px', background: canSubmit ? 'var(--bg-accent)' : 'var(--border-dashed)', cursor: canSubmit ? 'pointer' : 'not-allowed' },
-    onClick: async () => {
-      if (!canSubmit) return;
-      const tgId = authUser.telegram_id;
-      const nutrition = (f.kcal || f.protein || f.fat || f.carbs) ? {
-        kcal:    parseFloat(f.kcal)    || 0,
-        protein: parseFloat(f.protein) || 0,
-        fat:     parseFloat(f.fat)     || 0,
-        carbs:   parseFloat(f.carbs)   || 0,
-      } : null;
-      const payload = {
-        user_id: tgId,
-        name: f.name,
-        type: f.type,
-        category: f.category,
-        emoji: f.emoji,
-        recipe: f.recipe,
-        serve: f.serve,
-        time: parseInt(f.time) || 20,
-        meat: { type: f.type === 'chicken' ? 'chicken_fillet' : 'pork', grams: parseInt(f.meatGrams) || 300 },
-        ingredients: f.ingredients.filter(i => i.name),
-        nutrition,
-        is_default: false,
-      };
-      try {
-        // 1) Создаём рецепт — БД даст uuid
-        const { data: inserted, error: insErr } = await supabase
-          .from('recipes')
-          .insert(payload)
-          .select('id, name, type, category, emoji, recipe, serve, time, meat, ingredients, nutrition')
-          .single();
-        if (insErr) throw new Error(insErr.message);
+  // Сабмит вынесен в Telegram MainButton (внизу). Здесь — подсказка.
+  wrap.append(h('p', { className: 'muted', style: { marginTop: '14px', textAlign: 'center', fontSize: '12px' } },
+    canSubmit ? 'Готово — нажми кнопку «Добавить рецепт» внизу' : 'Заполни название и рецепт заготовки'
+  ));
 
-        // 2) Сразу делаем активным
-        const { error: actErr } = await supabase
-          .from('active_recipes')
-          .insert({ user_id: tgId, recipe_id: inserted.id });
-        if (actErr) throw new Error(actErr.message);
+  window._submitAddForm = async () => {
+    const f = window._addForm;
+    if (!f || !f.name || !f.recipe) return;
+    const tgId = authUser.telegram_id;
+    const nutrition = (f.kcal || f.protein || f.fat || f.carbs) ? {
+      kcal:    parseFloat(f.kcal)    || 0,
+      protein: parseFloat(f.protein) || 0,
+      fat:     parseFloat(f.fat)     || 0,
+      carbs:   parseFloat(f.carbs)   || 0,
+    } : null;
+    const payload = {
+      user_id: tgId,
+      name: f.name,
+      type: f.type,
+      category: f.category,
+      emoji: f.emoji,
+      recipe: f.recipe,
+      serve: f.serve,
+      time: parseInt(f.time) || 20,
+      meat: { type: f.type === 'chicken' ? 'chicken_fillet' : 'pork', grams: parseInt(f.meatGrams) || 300 },
+      ingredients: f.ingredients.filter(i => i.name),
+      nutrition,
+      is_default: false,
+    };
+    try {
+      const { data: inserted, error: insErr } = await supabase
+        .from('recipes')
+        .insert(payload)
+        .select('id, name, type, category, emoji, recipe, serve, time, meat, ingredients, nutrition')
+        .single();
+      if (insErr) throw new Error(insErr.message);
 
-        // 3) Локально применяем
-        state.recipes.push(decorateRecipe(inserted));
-        state.activeIds.add(inserted.id);
-        window._addForm = null;
-        state.tab = 0;
-        render();
-      } catch (e) {
-        console.error('add recipe failed', e);
-        showSyncError(e.message || 'не удалось добавить');
-      }
+      const { error: actErr } = await supabase
+        .from('active_recipes')
+        .insert({ user_id: tgId, recipe_id: inserted.id });
+      if (actErr) throw new Error(actErr.message);
+
+      state.recipes.push(decorateRecipe(inserted));
+      state.activeIds.add(inserted.id);
+      window._addForm = null;
+      state.tab = 1;
+      render();
+    } catch (e) {
+      console.error('add recipe failed', e);
+      showSyncError(e.message || 'не удалось добавить');
     }
-  }, '✓ Добавить'));
+  };
 
   app.append(wrap);
 }
@@ -1257,6 +1300,7 @@ async function initApp() {
   updateOfflineBanner();
 
   const tg = window.Telegram?.WebApp;
+  tgApp = tg;
 
   // Не в Telegram — показываем заглушку
   if (!tg || !tg.initData) {
