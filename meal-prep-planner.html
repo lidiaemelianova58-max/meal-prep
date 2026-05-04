@@ -29,13 +29,15 @@
   --bg-card-white: #FFFFFF;
   --bg-accent: #C9526B;
   --bg-tag: #FBE9ED;
-  --text-primary: #756070;
+  --text-primary: #2A2730;
   --text-secondary: #8A7A82;
   --text-tertiary: #B19BA3;
   --text-muted: #D9B5BF;
   --text-tag: #B14661;
   --text-tag-dark: #8A2747;
   --border-dashed: #EFD0D8;
+  --graphite: #2A2730;
+  --graphite-soft: #4A4250;
   --radius-card-main: 32px;
   --radius-card: 24px;
   --radius-block: 18px;
@@ -86,8 +88,8 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted var(--border-dashed); }
 .recipe-detail .ing-row span:last-child { font-weight: 800; white-space: nowrap; }
 .btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--bg-accent); color: #fff; cursor: pointer; box-shadow: var(--shadow-button); }
-.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: 1.5px solid var(--border-dashed); border-radius: var(--radius-pill); background: var(--bg-card-white); color: var(--text-secondary); cursor: pointer; }
-.btn-delete { font-size: 11px; padding: 4px 12px; color: var(--text-tag-dark); border-color: var(--text-tag-dark); }
+.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 20px; border: none; border-radius: var(--radius-pill); background: var(--graphite); color: #fff; cursor: pointer; box-shadow: var(--shadow-button); }
+.btn-delete { font-size: 11px; padding: 6px 14px; background: var(--bg-card-white); color: var(--text-tag-dark); border: 1.5px solid var(--text-tag-dark); box-shadow: none; }
 .btn-full { width: 100%; }
 .btn-group { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
 .progress { display: flex; gap: 2px; margin-bottom: 14px; }
