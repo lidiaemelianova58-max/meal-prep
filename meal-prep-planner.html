@@ -153,15 +153,6 @@ let state = {
   weekStart: null,
 };
 
-// Локальный фоллбэк (на 4.1 ещё используется для не-cloud действий галочки/удаления).
-// Уберу в 4.2, когда все записи пойдут через Supabase.
-function save() {
-  try {
-    const s = { ...state, activeIds: [...state.activeIds] };
-    localStorage.setItem('mealprep', JSON.stringify(s));
-  } catch(e) {}
-}
-
 // ─── Хелперы ─────────────────────────────────────────────────────────────
 // Понедельник текущей недели в формате YYYY-MM-DD (для plan.week_start)
 function getCurrentMonday() {
@@ -475,15 +466,49 @@ function renderPlanner(app, activeRecipes) {
 
   wrap.append(h('div', { className: 'btn-group' },
     h('button', { className: 'btn', onClick: () => {
+      const tgId = authUser.telegram_id;
       const sh = [...activeRecipes].sort(() => Math.random() - 0.5);
       state.plan = DAYS.map((_, i) => i < state.activeIds.size
-        ? { recipeId: sh[i % sh.length].id, side: SIDES[Math.floor(Math.random() * SIDES.length)].name }
-        : { recipeId: null, side: null });
-      state.editingDay = null; save(); render();
+        ? { recipeId: sh[i % sh.length].id, side: SIDES[Math.floor(Math.random() * SIDES.length)].name, status: null }
+        : { recipeId: null, side: null, status: null });
+      state.editingDay = null;
+      render();
+      cloudSync(async () => {
+        // Полностью переписываем неделю: чистим + вставляем заполненные дни
+        const { error: delErr } = await supabase.from('plan')
+          .delete()
+          .eq('user_id', tgId)
+          .eq('week_start', state.weekStart);
+        if (delErr) throw new Error(delErr.message);
+        const rows = state.plan
+          .map((d, idx) => ({ d, idx }))
+          .filter(({ d }) => d.recipeId)
+          .map(({ d, idx }) => ({
+            user_id: tgId,
+            week_start: state.weekStart,
+            day_index: idx,
+            recipe_id: d.recipeId,
+            side: d.side,
+            status: d.status,
+          }));
+        if (rows.length > 0) {
+          const { error: insErr } = await supabase.from('plan').insert(rows);
+          if (insErr) throw new Error(insErr.message);
+        }
+      });
     }}, '✨ Заполнить'),
     h('button', { className: 'btn-outline', onClick: () => {
-      state.plan = DAYS.map(() => ({ recipeId: null, side: null }));
-      state.editingDay = null; save(); render();
+      const tgId = authUser.telegram_id;
+      state.plan = DAYS.map(() => ({ recipeId: null, side: null, status: null }));
+      state.editingDay = null;
+      render();
+      cloudSync(async () => {
+        const { error } = await supabase.from('plan')
+          .delete()
+          .eq('user_id', tgId)
+          .eq('week_start', state.weekStart);
+        if (error) throw new Error(error.message);
+      });
     }}, 'Сбросить')
   ));
 
@@ -520,7 +545,18 @@ function renderPlanner(app, activeRecipes) {
         ));
         row.append(content);
         row.append(h('button', { className: 'day-clear', onClick: (e) => {
-          e.stopPropagation(); state.plan[idx] = { recipeId: null, side: null }; save(); render();
+          e.stopPropagation();
+          const tgId = authUser.telegram_id;
+          state.plan[idx] = { recipeId: null, side: null, status: null };
+          render();
+          cloudSync(async () => {
+            const { error } = await supabase.from('plan')
+              .delete()
+              .eq('user_id', tgId)
+              .eq('week_start', state.weekStart)
+              .eq('day_index', idx);
+            if (error) throw new Error(error.message);
+          });
         }}, '×'));
       } else {
         row.append(h('span', { className: 'day-empty' }, 'Нажми, чтобы выбрать'));
@@ -537,7 +573,23 @@ function renderPlanner(app, activeRecipes) {
           chips1.append(h('button', {
             className: 'chip' + (sel ? ' selected' : ''),
             style: sel ? { border: `2px solid ${r.color}`, background: r.bg, color: r.color } : {},
-            onClick: (e) => { e.stopPropagation(); state.plan[idx].recipeId = r.id; save(); render(); }
+            onClick: (e) => {
+              e.stopPropagation();
+              const tgId = authUser.telegram_id;
+              state.plan[idx].recipeId = r.id;
+              render();
+              cloudSync(async () => {
+                const { error } = await supabase.from('plan').upsert({
+                  user_id: tgId,
+                  week_start: state.weekStart,
+                  day_index: idx,
+                  recipe_id: state.plan[idx].recipeId,
+                  side: state.plan[idx].side,
+                  status: state.plan[idx].status,
+                }, { onConflict: 'user_id,week_start,day_index' });
+                if (error) throw new Error(error.message);
+              });
+            }
           }, `${r.emoji} ${r.name}`));
         });
         editor.append(chips1);
@@ -549,7 +601,25 @@ function renderPlanner(app, activeRecipes) {
           chips2.append(h('button', {
             className: 'chip' + (sel ? ' selected' : ''),
             style: sel ? { border: '2px solid #2D6A4F', background: '#E8F5E9' } : {},
-            onClick: (e) => { e.stopPropagation(); state.plan[idx].side = s.name; save(); render(); }
+            onClick: (e) => {
+              e.stopPropagation();
+              const tgId = authUser.telegram_id;
+              state.plan[idx].side = s.name;
+              render();
+              // Гарнир без рецепта в БД хранить не нужно — нет recipe_id, плюс выглядит странно
+              if (!state.plan[idx].recipeId) return;
+              cloudSync(async () => {
+                const { error } = await supabase.from('plan').upsert({
+                  user_id: tgId,
+                  week_start: state.weekStart,
+                  day_index: idx,
+                  recipe_id: state.plan[idx].recipeId,
+                  side: state.plan[idx].side,
+                  status: state.plan[idx].status,
+                }, { onConflict: 'user_id,week_start,day_index' });
+                if (error) throw new Error(error.message);
+              });
+            }
           }, `${s.emoji} ${s.name}`));
         });
         editor.append(chips2);
