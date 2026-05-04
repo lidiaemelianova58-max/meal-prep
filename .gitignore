@@ -4,8 +4,9 @@
 # Supabase CLI auto-generated (не для публичного репо)
 supabase/.temp/
 
-# Шрифты Gilroy — лицензионный вопрос, добавим в Этапе 5 отдельно
-Gilroy/
+# Шрифты Gilroy: коммитим только бесплатные начертания (.otf + COPYRIGHT)
+# EULA.pdf не нужен в публичном репо — он у владельца локально
+Gilroy/*.pdf
 
 # Node
 node_modules/

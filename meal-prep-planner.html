@@ -8,16 +8,29 @@
 <meta name="theme-color" content="#FDFAF7">
 <title>Meal Prep Planner 🧊</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+@font-face {
+  font-family: 'Gilroy';
+  src: url('Gilroy/Gilroy-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gilroy';
+  src: url('Gilroy/Gilroy-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Nunito', sans-serif; background: #FDFAF7; color: #2B2118; font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; background: #FDFAF7; color: #2B2118; font-size: 14px; -webkit-font-smoothing: antialiased; }
 .app { max-width: 600px; margin: 0 auto; padding: 0 8px 80px; }
 .header { text-align: center; padding: 16px 0 4px; }
 .header h1 { font-size: 20px; font-weight: 800; margin: 4px 0; letter-spacing: -0.3px; }
 .header p { font-size: 12px; color: #8A7E72; }
 .tabs { display: flex; position: sticky; top: 0; z-index: 20; background: #FDFAF7; border-bottom: 2px solid #E8E0D6; padding-top: 8px; }
-.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #8A7E72; border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Nunito', sans-serif; }
+.tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #8A7E72; border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-family: 'Gilroy', sans-serif; }
 .tab.active { font-weight: 700; color: #2D6A4F; border-bottom-color: #2D6A4F; }
 .tab-content { display: none; padding-top: 12px; }
 .tab-content.active { display: block; }
@@ -43,8 +56,8 @@ body { font-family: 'Nunito', sans-serif; background: #FDFAF7; color: #2B2118; f
 .recipe-detail .label { font-weight: 700; margin-bottom: 2px; }
 .recipe-detail .ing-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted #EEE; }
 .recipe-detail .ing-row span:last-child { font-weight: 600; white-space: nowrap; }
-.btn { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 16px; border: none; border-radius: 20px; background: #2D6A4F; color: #fff; cursor: pointer; }
-.btn-outline { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border: 1.5px solid #D4C9BC; border-radius: 20px; background: transparent; color: #8A7E72; cursor: pointer; }
+.btn { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 16px; border: none; border-radius: 20px; background: #2D6A4F; color: #fff; cursor: pointer; }
+.btn-outline { font-family: 'Gilroy', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border: 1.5px solid #D4C9BC; border-radius: 20px; background: transparent; color: #8A7E72; cursor: pointer; }
 .btn-delete { font-size: 11px; padding: 4px 12px; color: #C4430A; border-color: #C4430A; }
 .btn-full { width: 100%; }
 .btn-group { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
@@ -60,7 +73,7 @@ body { font-family: 'Nunito', sans-serif; background: #FDFAF7; color: #2B2118; f
 .day-clear { background: none; border: none; color: #C4B9AB; cursor: pointer; font-size: 18px; padding: 0 4px; }
 .editor { background: #FDFAF7; border: 1.5px solid #E8E0D6; border-top: none; border-radius: 0 0 12px 12px; padding: 12px; margin-bottom: 4px; }
 .chip-group { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-.chip { font-family: 'Nunito'; font-size: 11px; font-weight: 500; padding: 5px 8px; border-radius: 8px; border: 1.5px solid #D4C9BC; background: #fff; cursor: pointer; color: #2B2118; }
+.chip { font-family: 'Gilroy'; font-size: 11px; font-weight: 500; padding: 5px 8px; border-radius: 8px; border: 1.5px solid #D4C9BC; background: #fff; cursor: pointer; color: #2B2118; }
 .chip.selected { font-weight: 700; }
 .meat-row { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F0EBE4; }
 .meat-row:last-child { border-bottom: none; }
@@ -71,7 +84,7 @@ body { font-family: 'Nunito', sans-serif; background: #FDFAF7; color: #2B2118; f
 .extra-head .amount { font-weight: 700; white-space: nowrap; margin-left: 8px; }
 .spice-box { padding: 14px; font-size: 13px; color: #8A7E72; line-height: 1.8; }
 .summary { background: #F0F7F2; border-radius: 12px; padding: 14px; text-align: center; font-weight: 700; color: #2D6A4F; }
-input, textarea { font-family: 'Nunito', sans-serif; font-size: 13px; padding: 8px 12px; border: 1.5px solid #D4C9BC; border-radius: 10px; width: 100%; outline: none; background: #fff; }
+input, textarea { font-family: 'Gilroy', sans-serif; font-size: 13px; padding: 8px 12px; border: 1.5px solid #D4C9BC; border-radius: 10px; width: 100%; outline: none; background: #fff; }
 textarea { resize: vertical; }
 .form-group { margin-bottom: 10px; }
 .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
@@ -81,7 +94,7 @@ textarea { resize: vertical; }
 .ing-form-row input:first-child { flex: 2; }
 .ing-form-row input:last-child { flex: 1; }
 .toggle-group { display: flex; gap: 4px; }
-.toggle-btn { font-family: 'Nunito', sans-serif; flex: 1; padding: 6px 8px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; }
+.toggle-btn { font-family: 'Gilroy', sans-serif; flex: 1; padding: 6px 8px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 12px; }
 .sync-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); background: #FFE5E5; color: #B71C1C; border: 1.5px solid #EF9A9A; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 700; z-index: 100; max-width: calc(100vw - 16px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
 .sync-banner.show { display: block; }
 .offline-banner { position: fixed; top: 0; left: 0; right: 0; background: #FFF3CD; color: #7C5E00; border-bottom: 1.5px solid #FFE082; padding: 8px 16px; font-size: 13px; font-weight: 700; z-index: 99; text-align: center; display: none; }
