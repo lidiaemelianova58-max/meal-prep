@@ -125,6 +125,14 @@ body { font-family: 'Gilroy', -apple-system, BlinkMacSystemFont, sans-serif; fon
 .extra-head { display: flex; justify-content: space-between; align-items: baseline; }
 .extra-head .amount { font-weight: 300; white-space: nowrap; margin-left: 8px; }
 .spice-box { padding: 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+.shop-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border-dashed); }
+.shop-row:last-child { border-bottom: none; }
+.shop-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--graphite-soft); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.shop-check.on { background: var(--hero-bg); border-color: var(--hero-bg); color: var(--hero-text); }
+.shop-row.purchased { opacity: 0.45; }
+.shop-row.purchased .shop-text { text-decoration: line-through; }
+.shop-text { flex: 1; min-width: 0; }
+.shop-amount { font-size: 15px; white-space: nowrap; }
 .summary { background: var(--bg-card-white); border-radius: var(--radius-block); padding: 16px; text-align: center; font-weight: 300; color: var(--bg-accent); box-shadow: var(--shadow-card-white); }
 input, textarea { font-family: 'Gilroy', sans-serif; font-size: 13px; padding: 10px 14px; border: 1.5px solid var(--border-dashed); border-radius: var(--radius-row); width: 100%; outline: none; background: var(--bg-card-white); color: var(--text-primary); }
 textarea { resize: vertical; }
@@ -215,6 +223,7 @@ let state = {
   expanded: {},
   editingDay: null,
   weekStart: null,
+  purchased: new Set(),
 };
 
 // ─── Хелперы ─────────────────────────────────────────────────────────────
@@ -266,6 +275,30 @@ function updateOfflineBanner() {
 }
 window.addEventListener('online',  updateOfflineBanner);
 window.addEventListener('offline', updateOfflineBanner);
+
+// ─── Купленное ────────────────────────────────────────────────────────────
+function togglePurchased(key) {
+  const tgId = authUser.telegram_id;
+  if (state.purchased.has(key)) {
+    state.purchased.delete(key);
+    render();
+    cloudSync(async () => {
+      const { error } = await supabase.from('purchased_items')
+        .delete()
+        .eq('user_id', tgId)
+        .eq('product_key', key);
+      if (error) throw new Error(error.message);
+    });
+  } else {
+    state.purchased.add(key);
+    render();
+    cloudSync(async () => {
+      const { error } = await supabase.from('purchased_items')
+        .insert({ user_id: tgId, product_key: key });
+      if (error) throw new Error(error.message);
+    });
+  }
+}
 
 // Оптимистичная синхронизация: вызываем supabaseCall в фоне.
 // Если упадёт — показываем баннер. Когда есть сеть — пробуем перечитать
@@ -330,6 +363,14 @@ async function loadFromSupabase() {
       };
     }
   });
+
+  // 4) Купленные продукты
+  const { data: purchased, error: pErr2 } = await supabase
+    .from('purchased_items')
+    .select('product_key')
+    .eq('user_id', tgId);
+  if (pErr2) throw new Error(`Загрузка купленного: ${pErr2.message}`);
+  state.purchased = new Set((purchased || []).map(p => p.product_key));
 }
 
 // ═══════════════════ RENDER ═══════════════════
@@ -529,9 +570,18 @@ function renderShopping(app, activeRecipes) {
   Object.entries(meat).forEach(([type, grams]) => {
     totalMeat += grams;
     const mt = MEAT_TYPES[type] || { emoji: '🍖', label: type };
-    meatCard.append(h('div', { className: 'meat-row' },
-      h('div', null, h('span', { style: { fontSize: '16px', marginRight: '6px' } }, mt.emoji), h('span', { style: { fontWeight: 300 } }, mt.label)),
-      h('span', { style: { fontWeight: 300, fontSize: '15px', color: 'var(--bg-accent)' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
+    const key = `meat:${type}`;
+    const bought = state.purchased.has(key);
+    meatCard.append(h('div', { className: 'shop-row' + (bought ? ' purchased' : '') },
+      h('div', {
+        className: 'shop-check' + (bought ? ' on' : ''),
+        onClick: () => togglePurchased(key),
+      }, bought ? '✓' : ''),
+      h('div', { className: 'shop-text' },
+        h('span', { style: { fontSize: '16px', marginRight: '6px' } }, mt.emoji),
+        h('span', null, mt.label)
+      ),
+      h('span', { className: 'shop-amount', style: { color: 'var(--bg-accent)' } }, grams >= 1000 ? `${(grams/1000).toFixed(1)} кг` : `${grams} г`)
     ));
   });
   meatCard.append(h('div', { className: 'meat-total' }, `Всего мяса: ${(totalMeat/1000).toFixed(1)} кг`));
@@ -540,12 +590,18 @@ function renderShopping(app, activeRecipes) {
   wrap.append(h('div', { className: 'h3' }, '🛒 Остальные продукты'));
   const extCard = h('div', { className: 'card' });
   Object.entries(extras).forEach(([name, entries]) => {
-    extCard.append(h('div', { className: 'extra-row' },
-      h('div', { className: 'extra-head' },
-        h('span', { style: { fontWeight: 300 } }, name),
-        h('span', { className: 'amount' }, entries.length === 1 ? entries[0].amount : entries.map(e => e.amount).join(' + '))
+    const key = `extra:${name}`;
+    const bought = state.purchased.has(key);
+    extCard.append(h('div', { className: 'shop-row' + (bought ? ' purchased' : '') },
+      h('div', {
+        className: 'shop-check' + (bought ? ' on' : ''),
+        onClick: () => togglePurchased(key),
+      }, bought ? '✓' : ''),
+      h('div', { className: 'shop-text' },
+        h('div', null, name),
+        h('div', { className: 'muted', style: { fontSize: '11px', marginTop: '2px' } }, entries.map(e => e.from).join(' · '))
       ),
-      h('div', { className: 'muted' }, entries.map(e => e.from).join(' · '))
+      h('span', { className: 'shop-amount' }, entries.length === 1 ? entries[0].amount : entries.map(e => e.amount).join(' + '))
     ));
   });
   wrap.append(extCard);
